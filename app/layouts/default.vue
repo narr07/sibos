@@ -34,6 +34,8 @@
 		</UDashboardSidebar>
 
 		<slot />
+
+		<LayoutUpdateNotifier />
 	</UDashboardGroup>
 </template>
 

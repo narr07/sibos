@@ -6,7 +6,7 @@
 			</UButton>
 		</template>
 
-		<div v-if="form && view" class="max-w-4xl mx-auto space-y-6 pb-12">
+		<div v-if="form && view" class="w-full max-w-4xl mx-auto space-y-6 pb-12">
 			<UAlert
 				icon="i-lucide-info"
 				color="neutral"

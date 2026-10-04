@@ -26,7 +26,18 @@ export default defineAppConfig({
 		navigationMenu: {
 			slots: {
 				link: "cursor-pointer"
-			}
+			},
+			// Menu aktif: solid (latar warna utama tema, teks & ikon putih)
+			compoundVariants: [{
+				color: "primary",
+				variant: "pill",
+				active: true,
+				class: {
+					link: "text-inverted before:bg-primary",
+					linkLeadingIcon: "text-inverted group-data-[state=open]:text-inverted",
+					linkTrailingIcon: "text-inverted"
+				}
+			}]
 		}
 	}
 });

@@ -59,7 +59,8 @@ export const menuGroups: MenuGroup[] = [
 			{ label: "Template Dokumen", icon: "i-lucide-layout-template", to: "/lainnya/template", phase: 6, description: "Buat dan atur format SP, Nota, Kwitansi, BA Serah Terima." },
 			{ label: "Data Penyedia", icon: "i-lucide-store", to: "/lainnya/penyedia", phase: 6, description: "Penanggung jawab, kop, dan logo toko untuk dokumen." },
 			{ label: "Pengaturan", icon: "i-lucide-settings", to: "/lainnya/pengaturan", phase: 1, description: "Pejabat penandatangan, kop surat, nomor BA." },
-			{ label: "Tentang Aplikasi", icon: "i-lucide-info", to: "/lainnya/tentang", phase: 0, description: "Versi, data aplikasi, koneksi ARKAS." }
+			{ label: "Changelog", icon: "i-lucide-history", to: "/lainnya/changelog", phase: 0, description: "Riwayat versi dan perubahan aplikasi." },
+			{ label: "Tentang Aplikasi", icon: "i-lucide-info", to: "/lainnya/tentang", phase: 0, description: "Fitur, pembuat, versi, dan pembaruan aplikasi." }
 		]
 	}
 ];
