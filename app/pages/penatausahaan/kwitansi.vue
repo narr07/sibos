@@ -39,98 +39,69 @@
 
 			<UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-triangle-alert" :title="error" />
 
-			<div class="border border-default rounded-md overflow-auto max-h-[calc(100vh-19rem)]">
-				<table class="w-full text-sm">
-					<thead class="sticky top-0 bg-elevated z-10 text-xs text-muted">
-						<tr class="text-left">
-							<th class="p-2 w-8">
-								<UCheckbox :model-value="allChecked" aria-label="Pilih semua" @update:model-value="toggleAll" />
-							</th>
-							<th class="p-2">
-								Tanggal
-							</th>
-							<th class="p-2">
-								No. Bukti
-							</th>
-							<th class="p-2">
-								Toko / Penyedia
-							</th>
-							<th class="p-2">
-								Uraian
-							</th>
-							<th class="p-2 text-right">
-								Jumlah
-							</th>
-							<th class="p-2 text-right">
-								Pajak
-							</th>
-							<th class="p-2">
-								Status
-							</th>
-							<th class="p-2 w-10" />
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="g in filtered" :key="g.key" class="border-t border-default align-top hover:bg-elevated/50">
-							<td class="p-2">
-								<UCheckbox :model-value="checked.has(g.key)" :aria-label="`Pilih ${g.noBukti}`" @update:model-value="toggle(g.key)" />
-							</td>
-							<td class="p-2 whitespace-nowrap tabular">
-								{{ tanggalId(g.override?.tanggalBayar || g.tanggal) }}
-							</td>
-							<td class="p-2 whitespace-nowrap">
-								{{ g.noBukti || "-" }}
-								<UBadge v-if="g.kind === 'merge'" color="info" variant="subtle" size="sm" class="ml-1">
-									gabungan
-								</UBadge>
-							</td>
-							<td class="p-2">
-								{{ g.nota?.namaToko || "-" }}
-								<UBadge v-if="g.isSiplah" color="info" variant="subtle" size="sm" class="ml-1">
-									SIPLah
-								</UBadge>
-								<p v-if="g.nota?.noNota" class="text-xs text-muted">
-									Nota {{ g.nota.noNota }}
-								</p>
-							</td>
-							<td class="p-2 min-w-64">
-								{{ g.override?.keperluan || g.override?.uraian || g.uraian }}
-								<p class="text-xs text-muted">
-									{{ g.items.length }} item{{ g.fileCount ? ` · ${g.fileCount} foto nota` : "" }}
-								</p>
-							</td>
-							<td class="p-2 text-right tabular whitespace-nowrap">
-								{{ angka(g.total) }}
-							</td>
-							<td class="p-2 text-right tabular whitespace-nowrap">
-								<span v-if="g.totalPajak">{{ angka(g.totalPajak) }}</span>
-								<span v-else class="text-muted">-</span>
-							</td>
-							<td class="p-2 whitespace-nowrap space-x-1">
-								<UBadge v-if="g.printedBukti" color="success" variant="subtle" size="sm">
-									Bukti
-								</UBadge>
-								<UBadge v-if="g.printedA2" color="success" variant="subtle" size="sm">
-									A2
-								</UBadge>
-								<UBadge v-if="g.printedNota" color="success" variant="subtle" size="sm">
-									Nota
-								</UBadge>
-							</td>
-							<td class="p-2">
-								<UDropdownMenu :items="rowMenu(g)" :content="{ align: 'end' }">
-									<UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" size="xs" aria-label="Aksi" />
-								</UDropdownMenu>
-							</td>
-						</tr>
-						<tr v-if="!filtered.length && !loading">
-							<td colspan="9" class="p-8 text-center text-muted">
-								Tidak ada belanja pada periode ini.
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+			<UTable
+				:data="filtered"
+				:columns="columns"
+				:loading="loading"
+				sticky
+				empty="Tidak ada belanja pada periode ini."
+				class="max-h-[calc(100vh-19rem)] border border-default rounded-md"
+				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
+			>
+				<template #pilih-header>
+					<UCheckbox :model-value="allChecked" aria-label="Pilih semua" @update:model-value="toggleAll" />
+				</template>
+				<template #pilih-cell="{ row }">
+					<UCheckbox :model-value="checked.has(row.original.key)" :aria-label="`Pilih ${row.original.noBukti}`" @update:model-value="toggle(row.original.key)" />
+				</template>
+				<template #noBukti-cell="{ row }">
+					{{ row.original.noBukti || "-" }}
+					<UBadge v-if="row.original.kind === 'merge'" color="info" variant="subtle" size="sm" class="ml-1">
+						gabungan
+					</UBadge>
+				</template>
+				<template #toko-cell="{ row }">
+					<div class="whitespace-normal">
+						{{ row.original.nota?.namaToko || "-" }}
+						<UBadge v-if="row.original.isSiplah" color="info" variant="subtle" size="sm" class="ml-1">
+							SIPLah
+						</UBadge>
+						<p v-if="row.original.nota?.noNota" class="text-xs text-muted">
+							Nota {{ row.original.nota.noNota }}
+						</p>
+					</div>
+				</template>
+				<template #uraian-cell="{ row }">
+					<div class="whitespace-normal">
+						{{ row.original.override?.keperluan || row.original.override?.uraian || row.original.uraian }}
+						<p class="text-xs text-muted">
+							{{ row.original.items.length }} item{{ row.original.fileCount ? ` · ${row.original.fileCount} foto nota` : "" }}
+						</p>
+					</div>
+				</template>
+				<template #totalPajak-cell="{ row }">
+					<span v-if="row.original.totalPajak">{{ angka(row.original.totalPajak) }}</span>
+					<span v-else class="text-muted">-</span>
+				</template>
+				<template #status-cell="{ row }">
+					<div class="flex gap-1">
+						<UBadge v-if="row.original.printedBukti" color="success" variant="subtle" size="sm">
+							Bukti
+						</UBadge>
+						<UBadge v-if="row.original.printedA2" color="success" variant="subtle" size="sm">
+							A2
+						</UBadge>
+						<UBadge v-if="row.original.printedNota" color="success" variant="subtle" size="sm">
+							Nota
+						</UBadge>
+					</div>
+				</template>
+				<template #aksi-cell="{ row }">
+					<UDropdownMenu :items="rowMenu(row.original)" :content="{ align: 'end' }">
+						<UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" size="xs" aria-label="Aksi" />
+					</UDropdownMenu>
+				</template>
+			</UTable>
 			<p class="text-sm text-muted">
 				{{ filtered.length }} bukti · total {{ rupiah(filtered.reduce((s, g) => s + g.total, 0)) }}
 			</p>
@@ -303,11 +274,24 @@
 </template>
 
 <script lang="ts" setup>
-	import type { DropdownMenuItem } from "@nuxt/ui";
+	import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 	import DocBatch from "~/components/Print/DocBatch.vue";
 	import BuktiPengeluaran from "~/components/Print/Nota/BuktiPengeluaran.vue";
 	import KwitansiA2 from "~/components/Print/Nota/KwitansiA2.vue";
 	import NotaToko from "~/components/Print/Nota/NotaToko.vue";
+
+	const nominal = { th: "text-right", td: "text-right tabular whitespace-nowrap" };
+	const columns: TableColumn<NotaGroup>[] = [
+		{ id: "pilih", meta: { class: { th: "w-8", td: "w-8" } } },
+		{ accessorKey: "tanggal", header: "Tanggal", cell: ({ row }) => tanggalId(row.original.override?.tanggalBayar || row.original.tanggal), meta: { class: { td: "whitespace-nowrap tabular" } } },
+		{ accessorKey: "noBukti", header: "No. Bukti", meta: { class: { td: "whitespace-nowrap" } } },
+		{ id: "toko", header: "Toko / Penyedia" },
+		{ accessorKey: "uraian", header: "Uraian", meta: { class: { td: "min-w-64" } } },
+		{ accessorKey: "total", header: "Jumlah", cell: ({ row }) => angka(row.original.total), meta: { class: nominal } },
+		{ accessorKey: "totalPajak", header: "Pajak", meta: { class: nominal } },
+		{ id: "status", header: "Status" },
+		{ id: "aksi", meta: { class: { th: "w-10" } } }
+	];
 
 	const { connected, year, fund, funds } = useArkas();
 	const { open: openPrint } = usePrint();

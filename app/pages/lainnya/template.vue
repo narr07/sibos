@@ -10,10 +10,10 @@
 						<p class="text-xs text-muted mb-2">
 							Klik untuk menyalin, lalu tempel di teks template.
 						</p>
-						<button v-for="v in DAFTAR_ISIAN" :key="v.kunci" class="flex w-full items-center gap-2 rounded px-1.5 py-1 hover:bg-elevated text-left" @click="copyVar(v.kunci)">
+						<UButton v-for="v in DAFTAR_ISIAN" :key="v.kunci" block color="neutral" variant="ghost" size="sm" class="justify-start text-left" @click="copyVar(v.kunci)">
 							<code class="text-primary">{{ kurung(v.kunci) }}</code>
 							<span class="text-xs text-muted ml-auto text-right">{{ v.ket }}</span>
-						</button>
+						</UButton>
 					</div>
 				</template>
 			</UPopover>
@@ -35,20 +35,24 @@
 					<p v-if="templates.some((t) => t.jenis === j.value)" class="text-xs font-medium text-muted uppercase mb-1">
 						{{ j.label }}
 					</p>
-					<button
+					<UButton
 						v-for="t in templates.filter((x) => x.jenis === j.value)"
 						:key="t.id"
-						class="w-full text-left rounded-md border px-3 py-2 mb-1.5 transition-colors"
-						:class="t.id === selectedId ? 'border-primary bg-primary/5' : 'border-default hover:bg-elevated'"
+						block
+						:color="t.id === selectedId ? 'primary' : 'neutral'"
+						:variant="t.id === selectedId ? 'soft' : 'outline'"
+						class="justify-start text-left mb-1.5"
 						@click="select(t.id)"
 					>
-						<p class="font-medium text-sm truncate">
-							{{ t.nama }}
-						</p>
-						<p class="text-xs text-muted">
-							{{ t.data.kertas }} {{ t.data.orientasi === "landscape" ? "landscape" : "" }}{{ t.tokoMatch ? ` · toko: ${t.tokoMatch}` : " · umum" }}
-						</p>
-					</button>
+						<div class="min-w-0">
+							<p class="font-medium text-sm truncate">
+								{{ t.nama }}
+							</p>
+							<p class="text-xs text-muted">
+								{{ t.data.kertas }} {{ t.data.orientasi === "landscape" ? "landscape" : "" }}{{ t.tokoMatch ? ` · toko: ${t.tokoMatch}` : " · umum" }}
+							</p>
+						</div>
+					</UButton>
 				</div>
 			</div>
 
@@ -110,11 +114,17 @@
 
 				<div v-for="(b, i) in draft.data.blocks" :key="b.id" class="rounded-md border border-default">
 					<div class="flex items-center gap-1 px-2 py-1.5 bg-elevated/60 rounded-t-md">
-						<button class="flex-1 text-left text-sm font-medium" @click="toggle(b.id)">
-							<UIcon :name="open.has(b.id) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-3.5 align-middle" />
-							{{ BLOK_LABEL[b.type] }}
-							<span class="text-xs text-muted font-normal">{{ ringkas(b) }}</span>
-						</button>
+						<UButton
+							color="neutral"
+							variant="ghost"
+							size="sm"
+							class="flex-1 justify-start text-left min-w-0"
+							:icon="open.has(b.id) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+							@click="toggle(b.id)"
+						>
+							<span class="font-medium">{{ BLOK_LABEL[b.type] }}</span>
+							<span class="text-xs text-muted font-normal truncate">{{ ringkas(b) }}</span>
+						</UButton>
 						<UButton icon="i-lucide-arrow-up" size="xs" color="neutral" variant="ghost" :disabled="i === 0" aria-label="Naik" @click="move(i, -1)" />
 						<UButton icon="i-lucide-arrow-down" size="xs" color="neutral" variant="ghost" :disabled="i === draft.data.blocks.length - 1" aria-label="Turun" @click="move(i, 1)" />
 						<UButton icon="i-lucide-copy" size="xs" color="neutral" variant="ghost" aria-label="Duplikat" @click="dup(i)" />

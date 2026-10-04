@@ -11,6 +11,8 @@ export interface SchoolInfo {
 	nipKepalaSekolah: string | null
 	bendahara: string | null
 	nipBendahara: string | null
+	komite: string | null
+	nipKomite: string | null
 	telepon: string | null
 	kecamatan: string | null
 	kabupaten: string | null
@@ -104,6 +106,11 @@ export interface Pengaturan {
 		nipPemegangBarang: string
 		petugasRekon: string
 		nipPetugasRekon: string
+		komite: string
+		nipKomite: string
+		skKepalaSekolah: string
+		skBendahara: string
+		tanggalSkBendahara: string
 	}
 	kop: {
 		pemerintah: string

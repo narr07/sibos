@@ -18,41 +18,19 @@
 				Rekapitulasi realisasi per standar (program) untuk setiap sumber dana · {{ periodLabel }}
 			</p>
 
-			<div class="border border-default rounded-md overflow-auto">
-				<table class="w-full text-sm">
-					<thead class="bg-elevated text-xs text-muted">
-						<tr>
-							<th class="p-2 text-left">
-								Uraian / Standar
-							</th>
-							<th v-for="r in rows" :key="r.fund.id" class="p-2 text-right">
-								{{ r.fund.name }}
-							</th>
-							<th class="p-2 text-right">
-								Jumlah
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="line in lines" :key="line.label" class="border-t border-default" :class="line.bold ? 'font-semibold' : ''">
-							<td class="p-2">
-								{{ line.label }}
-							</td>
-							<td v-for="(v, i) in line.values" :key="i" class="p-2 text-right tabular">
-								{{ angka(v) }}
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ angka(line.values.reduce((a, b) => a + b, 0)) }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+			<UTable
+				:data="lines"
+				:columns="columns"
+				:meta="{ class: { tr: (row) => row.original.bold ? 'font-semibold' : '' } }"
+				class="border border-default rounded-md"
+				:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
+			/>
 		</div>
 	</LayoutPageShell>
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
 	import K7 from "~/components/Print/Laporan/K7.vue";
 
 	const { connected, year, years, setYear } = useArkas();
@@ -98,6 +76,14 @@
 			{ label: "Saldo akhir periode", values: per((s) => s.saldoAkhirBank + s.saldoAkhirTunai), bold: true }
 		];
 	});
+
+	const nominal = { th: "text-right", td: "text-right tabular" };
+	type Line = (typeof lines.value)[number];
+	const columns = computed<TableColumn<Line>[]>(() => [
+		{ accessorKey: "label", header: "Uraian / Standar", meta: { class: { td: "whitespace-normal" } } },
+		...rows.value.map((r, i) => ({ id: `f${i}`, header: r.fund.name, cell: ({ row }: { row: { original: Line } }) => angka(row.original.values[i] ?? 0), meta: { class: nominal } })),
+		{ id: "jumlah", header: "Jumlah", cell: ({ row }) => angka(row.original.values.reduce((a, b) => a + b, 0)), meta: { class: nominal } }
+	]);
 
 	const print = () => {
 		if (!year.value) return;

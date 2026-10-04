@@ -10,23 +10,27 @@
 					Draft baru dari ARKAS
 				</UButton>
 				<div class="space-y-2">
-					<button
+					<UButton
 						v-for="dr in drafts"
 						:key="dr.id"
-						class="w-full text-left rounded-md border p-3 transition-colors"
-						:class="dr.id === selectedId ? 'border-primary bg-primary/5' : 'border-default hover:bg-elevated'"
+						block
+						:color="dr.id === selectedId ? 'primary' : 'neutral'"
+						:variant="dr.id === selectedId ? 'soft' : 'outline'"
+						class="justify-start text-left p-3"
 						@click="selectedId = dr.id"
 					>
-						<div class="flex items-center gap-2">
-							<UBadge :color="jenisColor[dr.jenis]" variant="subtle" size="sm">
-								{{ jenisLabel[dr.jenis] }}
-							</UBadge>
-							<span class="font-medium truncate">{{ dr.nama }}</span>
+						<div class="min-w-0">
+							<div class="flex items-center gap-2">
+								<UBadge :color="jenisColor[dr.jenis]" variant="subtle" size="sm">
+									{{ jenisLabel[dr.jenis] }}
+								</UBadge>
+								<span class="font-medium truncate">{{ dr.nama }}</span>
+							</div>
+							<p class="text-xs text-muted mt-1 tabular">
+								{{ dr.itemCount }} item · {{ rupiah(dr.total) }}
+							</p>
 						</div>
-						<p class="text-xs text-muted mt-1 tabular">
-							{{ dr.itemCount }} item · {{ rupiah(dr.total) }}
-						</p>
-					</button>
+					</UButton>
 					<p v-if="!drafts.length" class="text-sm text-muted text-center py-6">
 						Belum ada draft untuk tahun ini.
 					</p>
@@ -86,61 +90,35 @@
 
 				<UInput v-model="search" icon="i-lucide-search" placeholder="Cari item..." class="w-72" />
 
-				<div class="border border-default rounded-md overflow-auto max-h-[calc(100vh-26rem)]">
-					<table class="w-full text-sm">
-						<thead class="sticky top-0 bg-elevated text-xs text-muted">
-							<tr>
-								<th class="p-2 text-left">
-									Kegiatan / Rekening
-								</th>
-								<th class="p-2 text-left">
-									Uraian
-								</th>
-								<th class="p-2 text-right">
-									Volume
-								</th>
-								<th class="p-2 text-right">
-									Harga
-								</th>
-								<th class="p-2 text-right">
-									Jumlah
-								</th>
-								<th class="p-2 w-20" />
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="it in filteredItems" :key="it.id" class="border-t border-default align-top">
-								<td class="p-2">
-									<p class="font-mono text-xs">
-										{{ it.kodeKegiatan }}
-									</p>
-									<p class="font-mono text-xs text-muted">
-										{{ it.kodeRekening }}
-									</p>
-								</td>
-								<td class="p-2">
-									{{ it.uraian }}
-									<p class="text-xs text-muted">
-										{{ it.kodeKegiatan ? detail.kodeNames[it.kodeKegiatan] : "" }}
-									</p>
-								</td>
-								<td class="p-2 text-right tabular whitespace-nowrap">
-									{{ volume(it).toLocaleString("id-ID") }} {{ it.satuan }}
-								</td>
-								<td class="p-2 text-right tabular">
-									{{ angka(it.hargaSatuan) }}
-								</td>
-								<td class="p-2 text-right tabular">
-									{{ angka(jumlah(it)) }}
-								</td>
-								<td class="p-2 whitespace-nowrap">
-									<UButton icon="i-lucide-pencil" size="xs" color="neutral" variant="ghost" aria-label="Ubah" @click="editItem(it)" />
-									<UButton icon="i-lucide-trash-2" size="xs" color="error" variant="ghost" aria-label="Hapus" @click="deleteItem(it)" />
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
+				<UTable
+					:data="filteredItems"
+					:columns="itemColumns"
+					sticky
+					empty="Belum ada item."
+					class="max-h-[calc(100vh-26rem)] border border-default rounded-md"
+					:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
+				>
+					<template #kode-cell="{ row }">
+						<p class="font-mono text-xs">
+							{{ row.original.kodeKegiatan }}
+						</p>
+						<p class="font-mono text-xs text-muted">
+							{{ row.original.kodeRekening }}
+						</p>
+					</template>
+					<template #uraian-cell="{ row }">
+						<p class="whitespace-normal">
+							{{ row.original.uraian }}
+						</p>
+						<p class="text-xs text-muted whitespace-normal">
+							{{ row.original.kodeKegiatan ? detail.kodeNames[row.original.kodeKegiatan] : "" }}
+						</p>
+					</template>
+					<template #aksi-cell="{ row }">
+						<UButton icon="i-lucide-pencil" size="xs" color="neutral" variant="ghost" aria-label="Ubah" @click="editItem(row.original)" />
+						<UButton icon="i-lucide-trash-2" size="xs" color="error" variant="ghost" aria-label="Hapus" @click="deleteItem(row.original)" />
+					</template>
+				</UTable>
 			</div>
 			<div v-else class="py-16 text-center text-muted">
 				Pilih atau buat draft RKAS.
@@ -239,7 +217,7 @@
 </template>
 
 <script lang="ts" setup>
-	import type { DropdownMenuItem } from "@nuxt/ui";
+	import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 
 	const { connected, year, funds } = useArkas();
 	const toast = useToast();
@@ -259,6 +237,16 @@
 	const jumlah = (it: Pick<DraftItem, "volumeBulan" | "hargaSatuan">) => Math.round(volume(it) * it.hargaSatuan);
 	const total = computed(() => (detail.value?.items ?? []).reduce((s, i) => s + jumlah(i), 0));
 	const selisih = computed(() => total.value - (detail.value?.parent?.total ?? 0));
+
+	const nominal = { th: "text-right", td: "text-right tabular whitespace-nowrap" };
+	const itemColumns: TableColumn<DraftItem>[] = [
+		{ id: "kode", header: "Kegiatan / Rekening" },
+		{ accessorKey: "uraian", header: "Uraian", meta: { class: { td: "min-w-64" } } },
+		{ id: "volume", header: "Volume", cell: ({ row }) => `${volume(row.original).toLocaleString("id-ID")} ${row.original.satuan ?? ""}`, meta: { class: nominal } },
+		{ accessorKey: "hargaSatuan", header: "Harga", cell: ({ row }) => angka(row.original.hargaSatuan), meta: { class: nominal } },
+		{ id: "jumlah", header: "Jumlah", cell: ({ row }) => angka(jumlah(row.original)), meta: { class: nominal } },
+		{ id: "aksi", header: "", meta: { class: { th: "w-20", td: "whitespace-nowrap" } } }
+	];
 
 	const filteredItems = computed(() => {
 		const q = search.value.trim().toLowerCase();

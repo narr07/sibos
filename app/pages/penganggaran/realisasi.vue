@@ -52,95 +52,53 @@
 				</UCard>
 			</div>
 
-			<div class="border border-default rounded-md overflow-auto max-h-[calc(100vh-24rem)]">
-				<table class="w-full text-sm">
-					<thead class="sticky top-0 bg-elevated text-xs text-muted z-10">
-						<tr>
-							<th class="p-2 text-left">
-								Kegiatan / Rekening
-							</th>
-							<th class="p-2 text-left">
-								Uraian
-							</th>
-							<th class="p-2 text-right">
-								Pagu
-							</th>
-							<th class="p-2 text-right">
-								Rencana s.d.
-							</th>
-							<th class="p-2 text-right">
-								Realisasi
-							</th>
-							<th class="p-2 text-right">
-								Sisa
-							</th>
-							<th class="p-2 w-36">
-								Status
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="i in filtered" :key="i.idRapbs" class="border-t border-default align-top">
-							<td class="p-2">
-								<p class="font-mono text-xs">
-									{{ i.kodeKegiatan }}
-								</p>
-								<p class="text-xs text-muted">
-									{{ i.namaKegiatan }}
-								</p>
-							</td>
-							<td class="p-2">
-								{{ i.uraian }}
-								<p class="text-xs text-muted font-mono">
-									{{ i.kodeRekening }}
-								</p>
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ angka(i.pagu) }}
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ angka(i.rencanaSd) }}
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ angka(i.totalRealisasi) }}
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ angka(i.sisa) }}
-							</td>
-							<td class="p-2">
-								<UBadge :color="statusColor[i.status]" variant="subtle" size="sm">
-									{{ statusLabel[i.status] }}
-								</UBadge>
-								<p v-if="i.tertunda" class="text-xs text-warning tabular mt-0.5">
-									tertunda {{ angka(i.tertunda) }}
-								</p>
-							</td>
-						</tr>
-						<tr v-for="o in outside" :key="o.id" class="border-t border-default bg-warning/5">
-							<td class="p-2 text-xs text-warning">
-								Di luar RKAS aktif
-							</td>
-							<td class="p-2">
-								{{ o.uraian }}
-							</td>
-							<td />
-							<td />
-							<td class="p-2 text-right tabular">
-								{{ angka(o.nominal) }}
-							</td>
-							<td />
-							<td class="p-2 text-xs tabular">
-								{{ tanggalId(o.tanggal) }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+			<UTable
+				:data="rows"
+				:columns="columns"
+				sticky
+				empty="Tidak ada item."
+				:meta="{ class: { tr: (row) => row.original.luar ? 'bg-warning/5' : '' } }"
+				class="max-h-[calc(100vh-24rem)] border border-default rounded-md"
+				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
+			>
+				<template #kegiatan-cell="{ row }">
+					<template v-if="row.original.item">
+						<p class="font-mono text-xs">
+							{{ row.original.item.kodeKegiatan }}
+						</p>
+						<p class="text-xs text-muted whitespace-normal">
+							{{ row.original.item.namaKegiatan }}
+						</p>
+					</template>
+					<span v-else class="text-xs text-warning">Di luar RKAS aktif</span>
+				</template>
+				<template #uraian-cell="{ row }">
+					<p class="whitespace-normal">
+						{{ row.original.uraian }}
+					</p>
+					<p v-if="row.original.item" class="text-xs text-muted font-mono">
+						{{ row.original.item.kodeRekening }}
+					</p>
+				</template>
+				<template #status-cell="{ row }">
+					<template v-if="row.original.item">
+						<UBadge :color="statusColor[row.original.item.status]" variant="subtle" size="sm">
+							{{ statusLabel[row.original.item.status] }}
+						</UBadge>
+						<p v-if="row.original.item.tertunda" class="text-xs text-warning tabular mt-0.5">
+							tertunda {{ angka(row.original.item.tertunda) }}
+						</p>
+					</template>
+					<span v-else-if="row.original.luar" class="text-xs tabular">{{ tanggalId(row.original.luar.tanggal) }}</span>
+				</template>
+			</UTable>
 		</div>
 	</LayoutPageShell>
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
+
 	const { connected, year, fund } = useArkas();
 	const { busy, xlsx } = useSaveFile();
 
@@ -190,6 +148,24 @@
 			&& (!q || [i.uraian, i.kodeRekening, i.kodeKegiatan, i.namaKegiatan].some((v) => v?.toLowerCase().includes(q))));
 	});
 	const outside = computed(() => (status.value === "semua" && !search.value ? data.value?.luarRkas ?? [] : []));
+
+	/** Baris tabel: item RKAS atau belanja di luar RKAS aktif. */
+	interface Baris { key: string, uraian: string, realisasi: number, item?: RealisasiItem, luar?: OutsideItem }
+	const rows = computed<Baris[]>(() => [
+		...filtered.value.map((i) => ({ key: i.idRapbs, uraian: i.uraian, realisasi: i.totalRealisasi, item: i })),
+		...outside.value.map((o) => ({ key: `luar-${o.id}`, uraian: o.uraian, realisasi: o.nominal, luar: o }))
+	]);
+	const nominal = { th: "text-right", td: "text-right tabular" };
+	const nilai = (v: number | undefined) => (v === undefined ? "" : angka(v));
+	const columns: TableColumn<Baris>[] = [
+		{ id: "kegiatan", header: "Kegiatan / Rekening" },
+		{ accessorKey: "uraian", header: "Uraian", meta: { class: { td: "min-w-64" } } },
+		{ id: "pagu", header: "Pagu", cell: ({ row }) => nilai(row.original.item?.pagu), meta: { class: nominal } },
+		{ id: "rencanaSd", header: "Rencana s.d.", cell: ({ row }) => nilai(row.original.item?.rencanaSd), meta: { class: nominal } },
+		{ accessorKey: "realisasi", header: "Realisasi", cell: ({ row }) => angka(row.original.realisasi), meta: { class: nominal } },
+		{ id: "sisa", header: "Sisa", cell: ({ row }) => nilai(row.original.item?.sisa), meta: { class: nominal } },
+		{ id: "status", header: "Status", meta: { class: { th: "w-36" } } }
+	];
 
 	const exportXlsx = () => {
 		if (!year.value) return;

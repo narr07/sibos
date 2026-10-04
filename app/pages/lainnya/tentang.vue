@@ -3,7 +3,7 @@
 		<div class="max-w-2xl mx-auto space-y-6">
 			<UCard>
 				<div class="flex items-center gap-4">
-					<img src="/logo.png" alt="" class="size-14">
+					<LayoutAppLogo class="size-14" />
 					<div>
 						<p class="text-xl font-semibold">
 							{{ app.name }}

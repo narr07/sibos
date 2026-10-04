@@ -14,7 +14,11 @@
 			</UFormField>
 			<div v-if="b.logo === 'custom'" class="flex items-center gap-2">
 				<img v-if="b.logoData" :src="b.logoData" alt="" class="h-10">
-				<input type="file" accept="image/*" class="text-xs" @change="uploadLogo">
+				<UFileUpload v-slot="{ open }" accept="image/*" reset :preview="false" @update:model-value="uploadLogo">
+					<UButton size="xs" color="neutral" variant="outline" icon="i-lucide-image-up" @click="open()">
+						Pilih logo
+					</UButton>
+				</UFileUpload>
 			</div>
 			<UCheckbox v-model="b.garis" label="Garis ganda di bawah kop" />
 		</template>
@@ -146,7 +150,15 @@
 				</UFormField>
 				<div class="grid grid-cols-2 gap-2">
 					<UFormField label="Warna sorotan">
-						<input v-model="b.warna" type="color" class="h-8 w-full rounded border border-default">
+						<UPopover>
+							<UButton color="neutral" variant="outline" size="sm" block class="justify-start">
+								<span class="size-4 rounded-sm ring ring-default" :style="{ backgroundColor: b.warna }" />
+								<span class="font-mono text-xs">{{ b.warna }}</span>
+							</UButton>
+							<template #content>
+								<UColorPicker v-model="b.warna" class="p-2" />
+							</template>
+						</UPopover>
 					</UFormField>
 					<UFormField label="Ruang ttd (mm)">
 						<UInputNumber v-model="b.tinggiTtd" :min="8" :max="40" size="sm" />
@@ -190,8 +202,7 @@
 		if (x !== undefined) arr.splice(j, 0, x);
 	}
 
-	const uploadLogo = async (e: Event) => {
-		const file = (e.target as HTMLInputElement).files?.[0];
+	const uploadLogo = async (file: File | null | undefined) => {
 		if (!file || b.value.type !== "kop") return;
 		try {
 			b.value.logoData = await fileToDataUrl(file);

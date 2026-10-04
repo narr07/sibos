@@ -1,23 +1,23 @@
 <template>
 	<div class="kop-surat mb-4">
-		<div class="grid items-center gap-2" style="grid-template-columns: 24mm 1fr 24mm">
+		<div class="grid items-center gap-2" style="grid-template-columns: 20mm 1fr 20mm">
 			<div class="kop-logo">
 				<img v-if="k?.logoKiri" :src="k.logoKiri" alt="">
 			</div>
 			<div class="text-center leading-[1.15]" style="font-family: 'Times New Roman', Times, serif">
-				<p v-if="k?.pemerintah" class="text-[14pt] font-bold uppercase">
+				<p v-if="k?.pemerintah" class="text-[12pt] font-bold uppercase">
 					{{ k.pemerintah }}
 				</p>
-				<p v-if="k?.dinas" class="text-[14pt] font-bold uppercase">
+				<p v-if="k?.dinas" class="text-[12pt] font-bold uppercase">
 					{{ k.dinas }}
 				</p>
-				<p class="text-[18pt] font-bold uppercase">
+				<p class="text-[14pt] font-bold uppercase">
 					{{ k?.namaSekolah || sekolah?.nama }}
 				</p>
-				<p v-if="barisAlamat" class="text-[11pt] italic">
+				<p v-if="barisAlamat" class="text-[9pt] italic">
 					{{ barisAlamat }}
 				</p>
-				<p v-if="barisKontak" class="text-[11pt] italic">
+				<p v-if="barisKontak" class="text-[9pt] italic">
 					{{ barisKontak }}
 				</p>
 			</div>
@@ -55,10 +55,10 @@
 </script>
 
 <style scoped>
-	/* Bingkai persegi yang sama untuk kedua logo agar simetris dan tidak gepeng */
+	/* Bingkai persegi 2 x 2 cm yang sama untuk kedua logo agar simetris dan tidak gepeng */
 	.kop-logo {
-		width: 24mm;
-		height: 24mm;
+		width: 20mm;
+		height: 20mm;
 		display: flex;
 		align-items: center;
 		justify-content: center;

@@ -11,8 +11,8 @@
 				icon="i-lucide-info"
 				color="neutral"
 				variant="subtle"
-				title="Kolom yang dikosongkan memakai data dari ARKAS (tampil samar sebagai contoh)."
-				description="Pengaturan ini dipakai di kop, tanda tangan, dan Berita Acara. Data ARKAS tidak diubah."
+				title="Isian otomatis diambil dari ARKAS dan tetap bisa diubah manual."
+				description="Kolom bertanda ARKAS mengikuti data ARKAS terbaru. Yang diubah manual disimpan di SIBOS; data ARKAS tidak diubah."
 			/>
 
 			<UCard>
@@ -23,7 +23,10 @@
 				</template>
 				<div class="grid sm:grid-cols-2 gap-4">
 					<UFormField v-for="f in pejabatFields" :key="f.key" :label="f.label">
-						<UInput v-model="form.pejabat[f.key]" :placeholder="view.bawaan.pejabat[f.key] || f.hint" :inputmode="f.key.startsWith('nip') ? 'numeric' : undefined" />
+						<template #hint>
+							<SumberIsian :sumber="sumber('pejabat', f.key)" @reset="resetKe('pejabat', f.key)" />
+						</template>
+						<UInput v-model="form.pejabat[f.key]" :placeholder="f.hint" :inputmode="f.key.startsWith('nip') ? 'numeric' : undefined" />
 					</UFormField>
 				</div>
 			</UCard>
@@ -45,7 +48,10 @@
 				<div class="grid sm:grid-cols-[1fr_auto_auto] gap-4 items-start">
 					<div class="grid gap-3">
 						<UFormField v-for="f in kopFields" :key="f.key" :label="f.label">
-							<UInput v-model="form.kop[f.key]" :placeholder="view.bawaan.kop[f.key] || f.hint" />
+							<template #hint>
+								<SumberIsian :sumber="sumber('kop', f.key)" @reset="resetKe('kop', f.key)" />
+							</template>
+							<UInput v-model="form.kop[f.key]" :placeholder="f.hint" />
 						</UFormField>
 					</div>
 					<UFormField v-for="side in logoSides" :key="side.key" :label="side.label" :hint="side.hint">
@@ -54,10 +60,11 @@
 								<img v-if="form.kop[side.key]" :src="form.kop[side.key]" alt="" class="max-w-full max-h-full object-contain">
 								<span v-else class="text-xs text-muted text-center px-2">Persegi 1:1, otomatis diratakan tengah</span>
 							</div>
-							<label class="cursor-pointer text-xs text-primary underline">
-								Pilih gambar
-								<input type="file" accept="image/*" class="hidden" @change="(e) => uploadLogo(e, side.key)">
-							</label>
+							<UFileUpload v-slot="{ open }" accept="image/*" reset :preview="false" @update:model-value="(f) => uploadLogo(f, side.key)">
+								<UButton size="xs" color="neutral" variant="outline" icon="i-lucide-image-up" @click="open()">
+									Pilih gambar
+								</UButton>
+							</UFileUpload>
 							<UButton v-if="form.kop[side.key]" size="xs" color="neutral" variant="ghost" icon="i-lucide-x" @click="form.kop[side.key] = ''">
 								Hapus
 							</UButton>
@@ -68,16 +75,18 @@
 					Logo yang diunggah ditempatkan di tengah bingkai persegi tanpa ditarik, sehingga kedua logo sama besar, simetris, dan tidak gepeng.
 					Gunakan gambar PNG dengan latar transparan bila ada.
 				</p>
-				<details class="mt-3">
-					<summary class="text-sm cursor-pointer">
+				<UCollapsible class="mt-3">
+					<UButton color="neutral" variant="ghost" size="sm" trailing-icon="i-lucide-chevron-down" :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform' }">
 						Data kontak sekolah (opsional)
-					</summary>
-					<div class="grid sm:grid-cols-2 gap-3 mt-3">
-						<UFormField v-for="f in kontakFields" :key="f.key" :label="f.label">
-							<UInput v-model="form.kop[f.key]" :placeholder="view.bawaan.kop[f.key] || f.hint" />
-						</UFormField>
-					</div>
-				</details>
+					</UButton>
+					<template #content>
+						<div class="grid sm:grid-cols-2 gap-3 mt-3">
+							<UFormField v-for="f in kontakFields" :key="f.key" :label="f.label">
+								<UInput v-model="form.kop[f.key]" :placeholder="f.hint" />
+							</UFormField>
+						</div>
+					</template>
+				</UCollapsible>
 			</UCard>
 
 			<UCard>
@@ -88,7 +97,7 @@
 				</template>
 				<div class="grid sm:grid-cols-2 gap-4">
 					<UFormField v-for="f in baFields" :key="f.key" :label="f.label">
-						<UInput v-model="form.ba[f.key]" :placeholder="view.bawaan.ba[f.key] || f.hint" />
+						<UInput v-model="form.ba[f.key]" :placeholder="f.hint" />
 					</UFormField>
 				</div>
 			</UCard>
@@ -101,7 +110,7 @@
 				</template>
 				<div class="grid sm:grid-cols-2 gap-4">
 					<UFormField label="Kota di atas tanda tangan">
-						<UInput v-model="form.cetak.kota" :placeholder="view.bawaan.cetak.kota || 'Contoh: Majalengka'" />
+						<UInput v-model="form.cetak.kota" placeholder="Contoh: Majalengka" />
 					</UFormField>
 					<UFormField label="Ukuran kertas">
 						<USelect v-model="form.cetak.kertas" :items="kertasItems" />
@@ -134,10 +143,15 @@
 		{ key: "nipKepalaSekolah", label: "NIP Kepala Sekolah", hint: "Hanya angka" },
 		{ key: "bendahara", label: "Bendahara", hint: "Nama bendahara" },
 		{ key: "nipBendahara", label: "NIP Bendahara", hint: "Hanya angka" },
+		{ key: "komite", label: "Ketua Komite", hint: "Nama ketua komite sekolah" },
+		{ key: "nipKomite", label: "NIP Ketua Komite", hint: "Hanya angka, boleh kosong" },
 		{ key: "pemegangBarang", label: "Pemegang Barang", hint: "Nama pemegang barang" },
 		{ key: "nipPemegangBarang", label: "NIP Pemegang Barang", hint: "Hanya angka" },
 		{ key: "petugasRekon", label: "Petugas Rekonsiliasi", hint: "Nama petugas" },
-		{ key: "nipPetugasRekon", label: "NIP Petugas Rekonsiliasi", hint: "Hanya angka" }
+		{ key: "nipPetugasRekon", label: "NIP Petugas Rekonsiliasi", hint: "Hanya angka" },
+		{ key: "skKepalaSekolah", label: "Nomor SK Kepala Sekolah", hint: "Contoh: 100.3.3.2/KEP.148-DISDIK/2026" },
+		{ key: "skBendahara", label: "Nomor SK Bendahara", hint: "Contoh: 400.3.3.5/084-SD/2026" },
+		{ key: "tanggalSkBendahara", label: "Tanggal SK Bendahara", hint: "Contoh: 2 Januari 2026" }
 	];
 	const kopFields: { key: KopKey, label: string, hint: string }[] = [
 		{ key: "pemerintah", label: "Baris 1 (pemerintah)", hint: "PEMERINTAH KABUPATEN ..." },
@@ -168,8 +182,7 @@
 		})) as Pengaturan["kop"];
 	});
 
-	const uploadLogo = async (e: Event, key: "logoKiri" | "logoKanan") => {
-		const file = (e.target as HTMLInputElement).files?.[0];
+	const uploadLogo = async (file: File | null | undefined, key: "logoKiri" | "logoKanan") => {
 		if (!file || !form.value) return;
 		try {
 			form.value.kop[key] = await fileToSquareLogo(file);
@@ -190,18 +203,47 @@
 		error.value = "";
 		try {
 			view.value = await api.pengaturanGet(year.value);
-			form.value = structuredClone(toRaw(view.value.tersimpan));
-			if (!form.value.cetak.kertas) form.value.cetak.kertas = view.value.efektif.cetak.kertas || "A4";
+			form.value = structuredClone(toRaw(view.value.efektif));
+			if (!form.value.cetak.kertas) form.value.cetak.kertas = "A4";
 		} catch (err) {
 			error.value = errorMessage(err);
 		}
+	};
+
+	type Bagian = "pejabat" | "kop" | "ba" | "cetak";
+	type Isian = Record<string, string>;
+
+	/** "arkas" bila isian sama dengan data ARKAS, "manual" bila diubah, null bila ARKAS tidak punya datanya. */
+	const sumber = (bagian: Bagian, key: string): "arkas" | "manual" | null => {
+		const asal = (view.value?.bawaan[bagian] as unknown as Isian | undefined)?.[key]?.trim() ?? "";
+		if (!asal || !form.value) return null;
+		return ((form.value[bagian] as unknown as Isian)[key] ?? "").trim() === asal ? "arkas" : "manual";
+	};
+	const resetKe = (bagian: Bagian, key: string) => {
+		if (!form.value || !view.value) return;
+		(form.value[bagian] as unknown as Isian)[key] = (view.value.bawaan[bagian] as unknown as Isian)[key] ?? "";
+	};
+
+	/** Yang sama dengan data ARKAS tidak disimpan, supaya tetap mengikuti ARKAS bila datanya berubah. */
+	const tanpaBawaan = (p: Pengaturan): Pengaturan => {
+		const out = structuredClone(toRaw(p));
+		const bawaan = view.value?.bawaan;
+		if (!bawaan) return out;
+		for (const bagian of ["pejabat", "kop", "ba", "cetak"] as const) {
+			const isi = out[bagian] as unknown as Isian;
+			const asal = bawaan[bagian] as unknown as Isian;
+			for (const key of Object.keys(isi)) {
+				if (asal[key] && isi[key]?.trim() === asal[key].trim()) isi[key] = "";
+			}
+		}
+		return out;
 	};
 
 	const save = async () => {
 		if (!form.value) return;
 		saving.value = true;
 		try {
-			await api.pengaturanSet(form.value);
+			await api.pengaturanSet(tanpaBawaan(form.value));
 			toast.add({ title: "Pengaturan tersimpan", color: "success" });
 			await load();
 		} catch (err) {

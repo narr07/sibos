@@ -18,79 +18,45 @@
 			/>
 			<UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-triangle-alert" :title="error" />
 
-			<div v-if="data" class="border border-default rounded-md overflow-auto">
-				<table class="w-full text-sm">
-					<thead class="bg-elevated text-xs text-muted">
-						<tr>
-							<th class="p-2 text-left">
-								Bulan
-							</th>
-							<th class="p-2 text-right">
-								Penerimaan
-							</th>
-							<th class="p-2 text-right">
-								Belanja
-							</th>
-							<th class="p-2 text-right">
-								Saldo bank (BKU)
-							</th>
-							<th class="p-2 text-right w-48">
-								Saldo rekening koran
-							</th>
-							<th class="p-2 text-right">
-								Selisih
-							</th>
-							<th class="p-2 text-left">
-								Keterangan
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="m in data.months" :key="m.month" class="border-t border-default">
-							<td class="p-2">
-								{{ BULAN[m.month - 1] }}
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ angka(m.penerimaan) }}
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ angka(m.belanja) }}
-							</td>
-							<td class="p-2 text-right tabular font-medium">
-								{{ angka(m.saldoBank) }}
-							</td>
-							<td class="p-1">
-								<UInputNumber
-									:model-value="m.rekeningKoran ?? undefined"
-									:format-options="{ maximumFractionDigits: 0 }"
-									locale="id-ID"
-									placeholder="-"
-									:increment="false"
-									:decrement="false"
-									size="sm"
-									@update:model-value="(v) => save(m.month, v ?? null, m.keterangan)"
-								/>
-							</td>
-							<td class="p-2 text-right tabular" :class="m.selisih ? 'text-error font-semibold' : 'text-success'">
-								{{ m.selisih === null ? "" : angka(m.selisih) }}
-							</td>
-							<td class="p-1">
-								<UInput
-									:model-value="m.keterangan ?? ''"
-									size="sm"
-									placeholder="Keterangan"
-									@change="(e: Event) => save(m.month, m.rekeningKoran, (e.target as HTMLInputElement).value)"
-								/>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+			<UTable
+				v-if="data"
+				:data="data.months"
+				:columns="columns"
+				class="border border-default rounded-md"
+				:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
+			>
+				<template #rekeningKoran-cell="{ row }">
+					<UInputNumber
+						:model-value="row.original.rekeningKoran ?? undefined"
+						:format-options="{ maximumFractionDigits: 0 }"
+						locale="id-ID"
+						placeholder="-"
+						:increment="false"
+						:decrement="false"
+						size="sm"
+						@update:model-value="(v) => save(row.original.month, v ?? null, row.original.keterangan)"
+					/>
+				</template>
+				<template #selisih-cell="{ row }">
+					<span :class="row.original.selisih ? 'text-error font-semibold' : 'text-success'">
+						{{ row.original.selisih === null ? "" : angka(row.original.selisih) }}
+					</span>
+				</template>
+				<template #keterangan-cell="{ row }">
+					<UInput
+						:model-value="row.original.keterangan ?? ''"
+						size="sm"
+						placeholder="Keterangan"
+						@change="(e: Event) => save(row.original.month, row.original.rekeningKoran, (e.target as HTMLInputElement).value)"
+					/>
+				</template>
+			</UTable>
 		</div>
 	</LayoutPageShell>
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
 	import RekonBankDoc from "~/components/Print/Laporan/RekonBank.vue";
 
 	const { connected, year, fund, funds } = useArkas();
@@ -122,6 +88,17 @@
 			toast.add({ title: "Gagal menyimpan", description: errorMessage(err), color: "error" });
 		}
 	};
+
+	const nominal = { th: "text-right", td: "text-right tabular" };
+	const columns: TableColumn<RekonBankMonth>[] = [
+		{ accessorKey: "month", header: "Bulan", cell: ({ row }) => BULAN[row.original.month - 1] },
+		{ accessorKey: "penerimaan", header: "Penerimaan", cell: ({ row }) => angka(row.original.penerimaan), meta: { class: nominal } },
+		{ accessorKey: "belanja", header: "Belanja", cell: ({ row }) => angka(row.original.belanja), meta: { class: nominal } },
+		{ accessorKey: "saldoBank", header: "Saldo bank (BKU)", cell: ({ row }) => angka(row.original.saldoBank), meta: { class: { ...nominal, td: `${nominal.td} font-medium` } } },
+		{ accessorKey: "rekeningKoran", header: "Saldo rekening koran", meta: { class: { th: "text-right w-48", td: "py-1" } } },
+		{ accessorKey: "selisih", header: "Selisih", meta: { class: nominal } },
+		{ accessorKey: "keterangan", header: "Keterangan", meta: { class: { td: "py-1" } } }
+	];
 
 	const print = () => {
 		if (!data.value) return;

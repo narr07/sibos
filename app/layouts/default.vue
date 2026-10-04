@@ -3,7 +3,7 @@
 		<UDashboardSidebar collapsible resizable :default-size="20" :min-size="16" :max-size="28" :ui="{ body: 'no-scrollbar', footer: 'flex-col items-stretch gap-1' }">
 			<template #header="{ collapsed }">
 				<NuxtLink to="/" class="flex items-center gap-2 min-w-0">
-					<img src="/logo.png" alt="" class="size-7 shrink-0">
+					<LayoutAppLogo class="size-7 shrink-0" />
 					<div v-if="!collapsed" class="min-w-0">
 						<p class="font-semibold leading-tight">
 							{{ app.name }}

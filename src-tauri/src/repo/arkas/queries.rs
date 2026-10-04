@@ -28,6 +28,8 @@ pub struct SchoolInfo {
 	pub nip_kepala_sekolah: Option<String>,
 	pub bendahara: Option<String>,
 	pub nip_bendahara: Option<String>,
+	pub komite: Option<String>,
+	pub nip_komite: Option<String>,
 	pub telepon: Option<String>,
 	pub kecamatan: Option<String>,
 	pub kabupaten: Option<String>,
@@ -205,6 +207,8 @@ pub fn school_info(db: &ArkasDb, year: Option<i32>) -> AppResult<SchoolInfo> {
 				}
 				info.bendahara = pick(&penjab, &["bendahara"]);
 				info.nip_bendahara = pick(&penjab, &["nip_bendahara"]);
+				info.komite = pick(&penjab, &["komite"]);
+				info.nip_komite = pick(&penjab, &["nip_komite"]);
 			}
 		}
 	}

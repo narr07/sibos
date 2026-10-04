@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* Warna teks. Mode terang dibuat satu tingkat lebih gelap dari bawaan Nuxt UI agar lebih jelas dibaca */
+:root,
+.light {
+	--ui-text-dimmed: var(--ui-color-neutral-500);
+	--ui-text-muted: var(--ui-color-neutral-800);
+	--ui-text-toned: var(--ui-color-neutral-700);
+	--ui-text: var(--ui-color-neutral-900);
+}
+
+.dark {
+	--ui-text-dimmed: var(--ui-color-neutral-500);
+	--ui-text-muted: var(--ui-color-neutral-400);
+	--ui-text-toned: var(--ui-color-neutral-300);
+	--ui-text: var(--ui-color-neutral-200);
+}
+
 /* Sembunyikan scrollbar tapi tetap bisa digulir (sidebar) */
 @utility no-scrollbar {
 	scrollbar-width: none;
@@ -9,10 +25,25 @@
 	}
 }
 
+/* Inter (variable, subset Latin) dibundel lokal: aplikasi harus jalan offline. Lisensi SIL OFL 1.1 */
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-display: swap;
+	font-weight: 100 900;
+	src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme {
-	/* Font sistem Windows: tidak perlu mengunduh atau membundel font */
-	--font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+	--font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
 	--font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+}
+
+/* Teks yang diseleksi mengikuti warna utama tema */
+::selection {
+	background-color: color-mix(in oklab, var(--ui-primary) 25%, transparent);
+	color: var(--ui-text-highlighted);
 }
 
 @layer utilities {
@@ -61,6 +92,18 @@
 	font-variant-numeric: tabular-nums;
 }
 
+/* Pratinjau: garis merah putus-putus menandai batas tiap lembar kertas.
+   Isi yang melewati garis akan tercetak di lembar berikutnya. */
+.print-page {
+	background-image: repeating-linear-gradient(
+		to bottom,
+		transparent 0,
+		transparent calc(var(--page-h) - 1px),
+		rgb(239 68 68 / 0.7) calc(var(--page-h) - 1px),
+		rgb(239 68 68 / 0.7) var(--page-h)
+	);
+}
+
 @media print {
 	html,
 	body {
@@ -85,6 +128,9 @@
 	}
 	.print-page {
 		box-shadow: none !important;
+		background-image: none !important;
+		/* Jangan paksa setinggi kertas: pembulatan ukuran bisa menambah lembar kosong */
+		min-height: 0 !important;
 		break-after: page;
 		margin: 0 !important;
 	}

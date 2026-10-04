@@ -54,3 +54,7 @@ export const akhirBulan = (year: number, month: number) => {
 /** Label periode: "Januari", "Januari - Juni 2026", dst. */
 export const labelPeriode = (year: number, start: number, end: number) =>
 	start === end ? `${BULAN[start - 1]} ${year}` : `${BULAN[start - 1]} - ${BULAN[end - 1]} ${year}`;
+
+/** Pecahan rupiah untuk hitung fisik uang (Register Kas). */
+export const PECAHAN_KERTAS = [100000, 50000, 20000, 10000, 5000, 2000, 1000];
+export const PECAHAN_LOGAM = [1000, 500, 200, 100];

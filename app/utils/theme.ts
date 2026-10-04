@@ -24,7 +24,11 @@ export const NEUTRAL_COLORS: { name: string, hex: string }[] = [
 	{ name: "gray", hex: "#6b7280" },
 	{ name: "zinc", hex: "#71717a" },
 	{ name: "neutral", hex: "#737373" },
-	{ name: "stone", hex: "#78716c" }
+	{ name: "stone", hex: "#78716c" },
+	{ name: "taupe", hex: "oklch(54.7% 0.021 43.1)" },
+	{ name: "mauve", hex: "oklch(54.2% 0.034 322.5)" },
+	{ name: "mist", hex: "oklch(56% 0.021 213.5)" },
+	{ name: "olive", hex: "oklch(58% 0.031 107.3)" }
 ];
 
 export const THEME_KEYS = { primary: "sibos-theme-primary", neutral: "sibos-theme-neutral" } as const;

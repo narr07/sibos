@@ -5,7 +5,7 @@
 				Simpan
 			</UButton>
 			<UButton icon="i-lucide-printer" :disabled="!reg" @click="print">
-				Cetak BA Pemeriksaan Kas
+				Cetak Register &amp; Berita Acara
 			</UButton>
 		</template>
 		<div v-if="!connected" class="py-16 text-center text-muted">
@@ -121,10 +121,10 @@
 </template>
 
 <script lang="ts" setup>
-	import BaPemeriksaanKas from "~/components/Print/Laporan/BaPemeriksaanKas.vue";
+	import RegisterPenutupanKas from "~/components/Print/Laporan/RegisterPenutupanKas.vue";
 
-	const KERTAS = [100000, 50000, 20000, 10000, 5000, 2000, 1000];
-	const LOGAM = [1000, 500, 200, 100];
+	const KERTAS = PECAHAN_KERTAS;
+	const LOGAM = PECAHAN_LOGAM;
 
 	const { connected, year, fund } = useArkas();
 	const { open } = usePrint();
@@ -183,6 +183,6 @@
 	const print = () => {
 		if (!reg.value) return;
 		const v = value();
-		open({ title: "BA Pemeriksaan Kas", component: BaPemeriksaanKas, props: { reg: reg.value, pecahan: v.pecahan, catatan: v.catatan } });
+		open({ title: `Register Penutupan Kas ${BULAN[month.value - 1]} ${year.value}`, component: RegisterPenutupanKas, props: { reg: reg.value, pecahan: v.pecahan, catatan: v.catatan } });
 	};
 </script>

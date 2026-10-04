@@ -43,66 +43,33 @@
 						</div>
 					</UForm>
 
-					<div class="border border-default rounded-md overflow-auto max-h-80">
-						<table class="w-full text-sm">
-							<thead class="bg-elevated text-xs text-muted sticky top-0">
-								<tr class="text-left">
-									<th class="p-2">
-										Tanggal
-									</th>
-									<th class="p-2">
-										Uraian
-									</th>
-									<th class="p-2">
-										Jenis
-									</th>
-									<th class="p-2">
-										Arah
-									</th>
-									<th class="p-2 text-right">
-										Nominal
-									</th>
-									<th class="p-2 w-20" />
-								</tr>
-							</thead>
-							<tbody>
-								<tr v-for="e in entries" :key="e.id" class="border-t border-default">
-									<td class="p-2 whitespace-nowrap tabular">
-										{{ tanggalId(e.tanggal) }}
-									</td>
-									<td class="p-2">
-										{{ e.uraian }}
-										<UBadge v-if="e.refId" color="info" variant="subtle" size="sm" class="ml-1">
-											dari nota
-										</UBadge>
-									</td>
-									<td class="p-2">
-										{{ e.jenisPajak }}
-									</td>
-									<td class="p-2">
-										<UBadge :color="e.arah === 'pungut' ? 'warning' : 'success'" variant="subtle" size="sm">
-											{{ e.arah === "pungut" ? "Pungut" : "Setor" }}
-										</UBadge>
-									</td>
-									<td class="p-2 text-right tabular">
-										{{ angka(e.nominal) }}
-									</td>
-									<td class="p-2 whitespace-nowrap">
-										<UButton v-if="!e.refId" icon="i-lucide-pencil" size="xs" color="neutral" variant="ghost" aria-label="Ubah" @click="edit(e)" />
-										<UTooltip v-else text="Ubah lewat Cetak Kwitansi A2 → Atur cetak">
-											<UButton icon="i-lucide-pencil" size="xs" color="neutral" variant="ghost" disabled aria-label="Ubah" />
-										</UTooltip>
-										<UButton icon="i-lucide-trash-2" size="xs" color="error" variant="ghost" aria-label="Hapus" @click="remove(e)" />
-									</td>
-								</tr>
-								<tr v-if="!entries.length">
-									<td colspan="6" class="p-6 text-center text-muted">
-										Belum ada entri pajak manual.
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
+					<UTable
+						:data="entries"
+						:columns="taxColumns"
+						sticky
+						empty="Belum ada entri pajak manual."
+						class="max-h-80 border border-default rounded-md"
+						:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
+					>
+						<template #uraian-cell="{ row }">
+							<span class="whitespace-normal">{{ row.original.uraian }}</span>
+							<UBadge v-if="row.original.refId" color="info" variant="subtle" size="sm" class="ml-1">
+								dari nota
+							</UBadge>
+						</template>
+						<template #arah-cell="{ row }">
+							<UBadge :color="row.original.arah === 'pungut' ? 'warning' : 'success'" variant="subtle" size="sm">
+								{{ row.original.arah === "pungut" ? "Pungut" : "Setor" }}
+							</UBadge>
+						</template>
+						<template #aksi-cell="{ row }">
+							<UButton v-if="!row.original.refId" icon="i-lucide-pencil" size="xs" color="neutral" variant="ghost" aria-label="Ubah" @click="edit(row.original)" />
+							<UTooltip v-else text="Ubah lewat Cetak Kwitansi A2 → Atur cetak">
+								<UButton icon="i-lucide-pencil" size="xs" color="neutral" variant="ghost" disabled aria-label="Ubah" />
+							</UTooltip>
+							<UButton icon="i-lucide-trash-2" size="xs" color="error" variant="ghost" aria-label="Hapus" @click="remove(row.original)" />
+						</template>
+					</UTable>
 				</div>
 			</template>
 		</UModal>
@@ -110,6 +77,8 @@
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
+
 	const { year, funds } = useArkas();
 	const toast = useToast();
 	const bookView = useTemplateRef<{ reload: () => Promise<void> }>("bookView");
@@ -121,6 +90,15 @@
 	const arahItems = [{ label: "Pungut (hutang pajak)", value: "pungut" }, { label: "Setor ke kas negara", value: "setor" }];
 	const jenisItems = ["PPN", "PPh 21", "PPh 22", "PPh 23", "PPh 4(2)", "Pajak Daerah"];
 	const fundItems = computed(() => [{ label: "Tidak spesifik", value: 0 }, ...funds.value.map((f) => ({ label: f.name, value: f.id }))]);
+
+	const taxColumns: TableColumn<ManualTax>[] = [
+		{ accessorKey: "tanggal", header: "Tanggal", cell: ({ row }) => tanggalId(row.original.tanggal), meta: { class: { td: "whitespace-nowrap tabular" } } },
+		{ accessorKey: "uraian", header: "Uraian" },
+		{ accessorKey: "jenisPajak", header: "Jenis" },
+		{ accessorKey: "arah", header: "Arah" },
+		{ accessorKey: "nominal", header: "Nominal", cell: ({ row }) => angka(row.original.nominal), meta: { class: { th: "text-right", td: "text-right tabular" } } },
+		{ id: "aksi", header: "", meta: { class: { th: "w-20", td: "whitespace-nowrap" } } }
+	];
 
 	const empty = (): ManualTax => ({
 		id: "",

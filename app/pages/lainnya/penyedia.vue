@@ -12,20 +12,24 @@
 					Daftar toko dari nota ARKAS tahun {{ year ?? "-" }}.
 				</p>
 				<div class="max-h-[calc(100vh-14rem)] overflow-auto space-y-1">
-					<button
+					<UButton
 						v-for="t in filtered"
 						:key="t.nama"
-						class="w-full text-left rounded-md border px-3 py-2 transition-colors"
-						:class="t.nama === selected ? 'border-primary bg-primary/5' : 'border-default hover:bg-elevated'"
+						block
+						:color="t.nama === selected ? 'primary' : 'neutral'"
+						:variant="t.nama === selected ? 'soft' : 'outline'"
+						class="justify-start text-left"
 						@click="pick(t.nama)"
 					>
-						<p class="text-sm font-medium truncate">
-							{{ t.nama }}
-						</p>
-						<p class="text-xs text-muted">
-							{{ t.jumlah }} nota{{ t.siplah ? " · SIPLah" : "" }}{{ t.tersimpan ? " · profil tersimpan" : "" }}
-						</p>
-					</button>
+						<div class="min-w-0">
+							<p class="text-sm font-medium truncate">
+								{{ t.nama }}
+							</p>
+							<p class="text-xs text-muted">
+								{{ t.jumlah }} nota{{ t.siplah ? " · SIPLah" : "" }}{{ t.tersimpan ? " · profil tersimpan" : "" }}
+							</p>
+						</div>
+					</UButton>
 				</div>
 			</div>
 
@@ -71,7 +75,11 @@
 						<UFormField label="Logo toko" class="sm:col-span-2">
 							<div class="flex items-center gap-3">
 								<img v-if="form.logo" :src="form.logo" alt="Logo" class="h-14 border border-default rounded">
-								<input type="file" accept="image/*" class="text-sm" @change="uploadLogo">
+								<UFileUpload v-slot="{ open }" accept="image/*" reset :preview="false" @update:model-value="uploadLogo">
+									<UButton size="sm" color="neutral" variant="outline" icon="i-lucide-image-up" @click="open()">
+										Pilih logo
+									</UButton>
+								</UFileUpload>
 								<UButton v-if="form.logo" size="xs" color="neutral" variant="ghost" icon="i-lucide-x" @click="form.logo = ''">
 									Hapus logo
 								</UButton>
@@ -146,8 +154,7 @@
 		if (form.value) Object.assign(form.value, { ...PENYEDIA_CONTOH.data });
 	};
 
-	const uploadLogo = async (e: Event) => {
-		const file = (e.target as HTMLInputElement).files?.[0];
+	const uploadLogo = async (file: File | null | undefined) => {
 		if (!file || !form.value) return;
 		try {
 			form.value.logo = await fileToDataUrl(file);

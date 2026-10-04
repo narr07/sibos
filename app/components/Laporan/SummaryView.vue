@@ -47,35 +47,12 @@
 						Penerimaan
 					</p>
 				</template>
-				<table class="w-full text-sm">
-					<tbody>
-						<tr v-for="(p, i) in s.penerimaan" :key="i" class="border-b border-default last:border-0">
-							<td class="py-1.5 tabular text-muted w-24">
-								{{ tanggalId(p.tanggal) }}
-							</td>
-							<td class="py-1.5">
-								{{ p.uraian }}
-							</td>
-							<td class="py-1.5 text-right tabular">
-								{{ angka(p.nominal) }}
-							</td>
-						</tr>
-						<tr v-if="s.bunga">
-							<td />
-							<td class="py-1.5">
-								Bunga bank
-							</td>
-							<td class="py-1.5 text-right tabular">
-								{{ angka(s.bunga) }}
-							</td>
-						</tr>
-						<tr v-if="!s.penerimaan.length && !s.bunga">
-							<td colspan="3" class="py-3 text-center text-muted">
-								Tidak ada penerimaan pada periode ini.
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<UTable
+					:data="penerimaanRows"
+					:columns="penerimaanColumns"
+					empty="Tidak ada penerimaan pada periode ini."
+					:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
+				/>
 			</UCard>
 			<UCard>
 				<template #header>
@@ -83,47 +60,43 @@
 						Pengeluaran per kelompok
 					</p>
 				</template>
-				<table class="w-full text-sm">
-					<tbody>
-						<tr v-for="k in s.belanjaKelompok" :key="k.kode" class="border-b border-default last:border-0">
-							<td class="py-1.5">
-								{{ k.nama }}
-							</td>
-							<td class="py-1.5 text-right tabular">
-								{{ angka(k.total) }}
-							</td>
-						</tr>
-						<tr v-if="s.pajakBunga">
-							<td class="py-1.5">
-								Pajak bunga / adm bank
-							</td>
-							<td class="py-1.5 text-right tabular">
-								{{ angka(s.pajakBunga) }}
-							</td>
-						</tr>
-						<tr v-if="s.pengembalian">
-							<td class="py-1.5">
-								Pengembalian dana
-							</td>
-							<td class="py-1.5 text-right tabular">
-								{{ angka(s.pengembalian) }}
-							</td>
-						</tr>
-						<tr class="font-semibold">
-							<td class="py-1.5">
-								Operasi / Modal
-							</td>
-							<td class="py-1.5 text-right tabular">
-								{{ angka(s.belanjaOperasi) }} / {{ angka(s.belanjaModal) }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<UTable
+					:data="pengeluaranRows"
+					:columns="pengeluaranColumns"
+					:meta="{ class: { tr: (row) => row.original.bold ? 'font-semibold' : '' } }"
+					:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
+				/>
 			</UCard>
 		</div>
 	</div>
 </template>
 
 <script lang="ts" setup>
-	defineProps<{ s: PeriodSummary }>();
+	import type { TableColumn } from "@nuxt/ui";
+
+	const props = defineProps<{ s: PeriodSummary }>();
+
+	interface Baris { tanggal?: string, uraian: string, nilai: string, bold?: boolean }
+	const nominal = { th: "text-right", td: "text-right tabular" };
+
+	const penerimaanRows = computed<Baris[]>(() => [
+		...props.s.penerimaan.map((p) => ({ tanggal: tanggalId(p.tanggal), uraian: p.uraian, nilai: angka(p.nominal) })),
+		...(props.s.bunga ? [{ uraian: "Bunga bank", nilai: angka(props.s.bunga) }] : [])
+	]);
+	const penerimaanColumns: TableColumn<Baris>[] = [
+		{ accessorKey: "tanggal", header: "Tanggal", meta: { class: { td: "tabular text-muted w-24" } } },
+		{ accessorKey: "uraian", header: "Uraian", meta: { class: { td: "whitespace-normal" } } },
+		{ accessorKey: "nilai", header: "Jumlah", meta: { class: nominal } }
+	];
+
+	const pengeluaranRows = computed<Baris[]>(() => [
+		...props.s.belanjaKelompok.map((k) => ({ uraian: k.nama, nilai: angka(k.total) })),
+		...(props.s.pajakBunga ? [{ uraian: "Pajak bunga / adm bank", nilai: angka(props.s.pajakBunga) }] : []),
+		...(props.s.pengembalian ? [{ uraian: "Pengembalian dana", nilai: angka(props.s.pengembalian) }] : []),
+		{ uraian: "Operasi / Modal", nilai: `${angka(props.s.belanjaOperasi)} / ${angka(props.s.belanjaModal)}`, bold: true }
+	]);
+	const pengeluaranColumns: TableColumn<Baris>[] = [
+		{ accessorKey: "uraian", header: "Kelompok", meta: { class: { td: "whitespace-normal" } } },
+		{ accessorKey: "nilai", header: "Jumlah", meta: { class: nominal } }
+	];
 </script>

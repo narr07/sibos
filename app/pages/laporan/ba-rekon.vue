@@ -24,31 +24,24 @@
 						Rincian per kode rekening
 					</p>
 				</template>
-				<table class="w-full text-sm">
-					<tbody>
-						<tr v-for="r in summary.belanjaRekening" :key="r.kode" class="border-b border-default last:border-0">
-							<td class="py-1.5 font-mono text-xs w-44">
-								{{ r.kode }}
-							</td>
-							<td class="py-1.5">
-								{{ r.nama }}
-							</td>
-							<td class="py-1.5 text-right tabular">
-								{{ angka(r.total) }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<UTable :data="summary.belanjaRekening" :columns="rekeningColumns" :ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }" />
 			</UCard>
 		</div>
 	</LayoutPageShell>
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
 	import BaRekon from "~/components/Print/Laporan/BaRekon.vue";
 
 	const { connected, range, summary, error, fundLabel, periodLabel } = usePeriodSummary();
 	const { open } = usePrint();
+
+	const rekeningColumns: TableColumn<Total>[] = [
+		{ accessorKey: "kode", header: "Kode rekening", meta: { class: { td: "font-mono text-xs w-44" } } },
+		{ accessorKey: "nama", header: "Uraian", meta: { class: { td: "whitespace-normal" } } },
+		{ accessorKey: "total", header: "Jumlah", cell: ({ row }) => angka(row.original.total), meta: { class: { th: "text-right", td: "text-right tabular" } } }
+	];
 
 	const print = () => {
 		if (!summary.value) return;

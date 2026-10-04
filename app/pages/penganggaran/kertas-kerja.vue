@@ -22,73 +22,26 @@
 				</UBadge>
 			</div>
 
-			<div class="border border-default rounded-md overflow-auto max-h-[calc(100vh-19rem)]">
-				<table class="w-full text-sm">
-					<thead class="sticky top-0 bg-elevated text-xs text-muted z-10">
-						<tr>
-							<th class="p-2 text-left">
-								Kode
-							</th>
-							<th class="p-2 text-left">
-								Uraian
-							</th>
-							<th class="p-2 text-right">
-								Volume
-							</th>
-							<th class="p-2 text-left">
-								Satuan
-							</th>
-							<th class="p-2 text-right">
-								Harga
-							</th>
-							<th class="p-2 text-right">
-								Jumlah
-							</th>
-							<template v-if="showMonths">
-								<th v-for="m in BULAN_PENDEK" :key="m" class="p-2 text-right">
-									{{ m }}
-								</th>
-							</template>
-						</tr>
-					</thead>
-					<tbody>
-						<template v-for="node in tree" :key="node.key">
-							<tr :class="node.level === 0 ? 'bg-elevated/70 font-semibold' : node.level === 1 ? 'font-medium' : ''" class="border-t border-default">
-								<td class="p-2 font-mono text-xs whitespace-nowrap" :style="{ paddingLeft: `${0.5 + node.level * 1}rem` }">
-									{{ node.kode }}
-								</td>
-								<td class="p-2" :colspan="node.item ? 1 : 4">
-									{{ node.label }}
-								</td>
-								<template v-if="node.item">
-									<td class="p-2 text-right tabular">
-										{{ node.item.volume }}
-									</td>
-									<td class="p-2">
-										{{ node.item.satuan }}
-									</td>
-									<td class="p-2 text-right tabular">
-										{{ angka(node.item.hargaSatuan) }}
-									</td>
-								</template>
-								<td class="p-2 text-right tabular whitespace-nowrap">
-									{{ angka(node.total) }}
-								</td>
-								<template v-if="showMonths">
-									<td v-for="(v, i) in node.months" :key="i" class="p-2 text-right tabular text-xs">
-										{{ v ? angka(v) : "" }}
-									</td>
-								</template>
-							</tr>
-						</template>
-					</tbody>
-				</table>
-			</div>
+			<UTable
+				:data="tree"
+				:columns="columns"
+				sticky
+				empty="Tidak ada item RKAS."
+				:meta="{ class: { tr: (row) => row.original.level === 0 ? 'bg-elevated/70 font-semibold' : row.original.level === 1 ? 'font-medium' : '' } }"
+				class="max-h-[calc(100vh-19rem)] border border-default rounded-md"
+				:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
+			>
+				<template #kode-cell="{ row }">
+					<span class="font-mono text-xs" :style="{ paddingLeft: `${row.original.level}rem` }">{{ row.original.kode }}</span>
+				</template>
+			</UTable>
 		</div>
 	</LayoutPageShell>
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
+
 	interface Node {
 		key: string
 		level: number
@@ -141,6 +94,24 @@
 	});
 
 	const total = computed(() => filteredItems.value.reduce((s, i) => s + i.jumlah, 0));
+
+	const nominal = { th: "text-right", td: "text-right tabular whitespace-nowrap" };
+	const columns = computed<TableColumn<Node>[]>(() => [
+		{ accessorKey: "kode", header: "Kode", meta: { class: { td: "whitespace-nowrap" } } },
+		{ accessorKey: "label", header: "Uraian", meta: { class: { td: "whitespace-normal min-w-64" } } },
+		{ id: "volume", header: "Volume", cell: ({ row }) => row.original.item?.volume ?? "", meta: { class: nominal } },
+		{ id: "satuan", header: "Satuan", cell: ({ row }) => row.original.item?.satuan ?? "" },
+		{ id: "harga", header: "Harga", cell: ({ row }) => (row.original.item ? angka(row.original.item.hargaSatuan) : ""), meta: { class: nominal } },
+		{ accessorKey: "total", header: "Jumlah", cell: ({ row }) => angka(row.original.total), meta: { class: nominal } },
+		...(showMonths.value
+			? BULAN_PENDEK.map((m, i): TableColumn<Node> => ({
+				id: `m${i}`,
+				header: m,
+				cell: ({ row }) => (row.original.months[i] ? angka(row.original.months[i]) : ""),
+				meta: { class: { th: "text-right", td: "text-right tabular text-xs" } }
+			}))
+			: [])
+	]);
 
 	const prefixes = (kode: string) => {
 		const parts = kode.split(".").filter(Boolean);

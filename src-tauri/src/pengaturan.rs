@@ -21,6 +21,14 @@ pub struct Pejabat {
 	pub nip_pemegang_barang: String,
 	pub petugas_rekon: String,
 	pub nip_petugas_rekon: String,
+	/// Ketua komite sekolah (dari ARKAS `sekolah_penjab`).
+	pub komite: String,
+	pub nip_komite: String,
+	/// Nomor SK penunjukan kepala sekolah (Berita Acara Pemeriksaan Kas).
+	pub sk_kepala_sekolah: String,
+	/// Nomor dan tanggal SK penunjukan bendahara.
+	pub sk_bendahara: String,
+	pub tanggal_sk_bendahara: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -158,6 +166,11 @@ pub fn gabung(saved: &Pengaturan, default: &Pengaturan) -> Pengaturan {
 			nip_pemegang_barang: pick(&sp.nip_pemegang_barang, &dp.nip_pemegang_barang),
 			petugas_rekon: pick(&sp.petugas_rekon, &dp.petugas_rekon),
 			nip_petugas_rekon: pick(&sp.nip_petugas_rekon, &dp.nip_petugas_rekon),
+			komite: pick(&sp.komite, &dp.komite),
+			nip_komite: pick(&sp.nip_komite, &dp.nip_komite),
+			sk_kepala_sekolah: pick(&sp.sk_kepala_sekolah, &dp.sk_kepala_sekolah),
+			sk_bendahara: pick(&sp.sk_bendahara, &dp.sk_bendahara),
+			tanggal_sk_bendahara: pick(&sp.tanggal_sk_bendahara, &dp.tanggal_sk_bendahara),
 		},
 		kop: Kop {
 			pemerintah: pick(&sk.pemerintah, &dk.pemerintah),
@@ -205,6 +218,7 @@ pub fn validate(p: &Pengaturan) -> AppResult<()> {
 	digits_only("NIP Bendahara", &j.nip_bendahara)?;
 	digits_only("NIP Pemegang Barang", &j.nip_pemegang_barang)?;
 	digits_only("NIP Petugas Rekonsiliasi", &j.nip_petugas_rekon)?;
+	digits_only("NIP Ketua Komite", &j.nip_komite)?;
 	if !p.cetak.kertas.is_empty() && !["A4", "F4"].contains(&p.cetak.kertas.as_str()) {
 		return Err(AppError::InvalidInput("ukuran kertas harus A4 atau F4".into()));
 	}

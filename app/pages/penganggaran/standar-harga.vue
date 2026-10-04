@@ -15,61 +15,35 @@
 			<p class="text-sm text-muted">
 				Katalog standar harga dari database ARKAS. {{ results.length ? `${results.length} hasil${results.length >= 200 ? " (dibatasi 200)" : ""}.` : "" }}
 			</p>
-			<div v-if="results.length" class="border border-default rounded-md overflow-auto max-h-[calc(100vh-16rem)]">
-				<table class="w-full text-sm">
-					<thead class="sticky top-0 bg-elevated text-xs text-muted">
-						<tr>
-							<th class="p-2 text-left">
-								Nama barang
-							</th>
-							<th class="p-2 text-left">
-								Satuan
-							</th>
-							<th class="p-2 text-right">
-								Harga
-							</th>
-							<th class="p-2 text-right">
-								Batas atas
-							</th>
-							<th class="p-2 text-left">
-								Kode rekening
-							</th>
-							<th class="p-2 text-left">
-								Tahun
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="(r, i) in results" :key="i" class="border-t border-default">
-							<td class="p-2">
-								{{ r.namaBarang }}
-							</td>
-							<td class="p-2">
-								{{ r.satuan }}
-							</td>
-							<td class="p-2 text-right tabular">
-								{{ r.harga !== null ? angka(r.harga) : "" }}
-							</td>
-							<td class="p-2 text-right tabular text-muted">
-								{{ r.batasAtas ? angka(r.batasAtas) : "" }}
-							</td>
-							<td class="p-2 whitespace-nowrap">
-								<UButton v-if="r.kodeRekening" size="xs" color="neutral" variant="ghost" icon="i-lucide-copy" class="font-mono" @click="copy(r.kodeRekening)">
-									{{ r.kodeRekening }}
-								</UButton>
-							</td>
-							<td class="p-2 text-muted">
-								{{ r.tahun }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+			<UTable
+				v-if="results.length"
+				:data="results"
+				:columns="columns"
+				sticky
+				class="max-h-[calc(100vh-16rem)] border border-default rounded-md"
+				:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
+			>
+				<template #kodeRekening-cell="{ row }">
+					<UButton
+						v-if="row.original.kodeRekening"
+						size="xs"
+						color="neutral"
+						variant="ghost"
+						icon="i-lucide-copy"
+						class="font-mono"
+						@click="copy(row.original.kodeRekening)"
+					>
+						{{ row.original.kodeRekening }}
+					</UButton>
+				</template>
+			</UTable>
 		</div>
 	</LayoutPageShell>
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
+
 	const { connected, year } = useArkas();
 	const toast = useToast();
 	const { copy: clip } = useClipboard();
@@ -86,6 +60,16 @@
 	}, 300);
 
 	watch([keyword, year], search);
+
+	const nominal = { th: "text-right", td: "text-right tabular whitespace-nowrap" };
+	const columns: TableColumn<StandarHarga>[] = [
+		{ accessorKey: "namaBarang", header: "Nama barang", meta: { class: { td: "whitespace-normal min-w-64" } } },
+		{ accessorKey: "satuan", header: "Satuan" },
+		{ accessorKey: "harga", header: "Harga", cell: ({ row }) => row.original.harga !== null ? angka(row.original.harga) : "", meta: { class: nominal } },
+		{ accessorKey: "batasAtas", header: "Batas atas", cell: ({ row }) => row.original.batasAtas ? angka(row.original.batasAtas) : "", meta: { class: { ...nominal, td: `${nominal.td} text-muted` } } },
+		{ accessorKey: "kodeRekening", header: "Kode rekening", meta: { class: { td: "whitespace-nowrap" } } },
+		{ accessorKey: "tahun", header: "Tahun", meta: { class: { td: "text-muted" } } }
+	];
 
 	const copy = async (kode: string) => {
 		await clip(kode);

@@ -13,6 +13,7 @@ export default defineNuxtConfig({
 			title: "SIBOS",
 			charset: "utf-8",
 			htmlAttrs: { lang: "id" },
+			link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
 			meta: [
 				{ name: "format-detection", content: "no" },
 				{ name: "viewport", content: "width=device-width, initial-scale=1" }

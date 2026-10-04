@@ -10,28 +10,7 @@
 			</UButton>
 		</div>
 
-		<table v-if="showTable" class="w-full text-xs">
-			<thead class="text-muted">
-				<tr>
-					<th class="text-left py-1">
-						Bulan
-					</th>
-					<th v-for="s in series" :key="s.label" class="text-right py-1">
-						{{ s.label }}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(m, i) in BULAN" :key="m" class="border-t border-default">
-					<td class="py-1">
-						{{ m }}
-					</td>
-					<td v-for="s in series" :key="s.label" class="text-right tabular py-1">
-						{{ angka(s.values[i] ?? 0) }}
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<UTable v-if="showTable" :data="tableRows" :columns="tableColumns" :ui="{ td: 'py-1 text-xs', th: 'py-1 text-xs' }" />
 
 		<div v-else class="relative">
 			<svg :viewBox="`0 0 ${W} ${H}`" class="w-full h-auto" role="img" :aria-label="ariaLabel" @mouseleave="hover = null">
@@ -86,6 +65,8 @@
 </template>
 
 <script lang="ts" setup>
+	import type { TableColumn } from "@nuxt/ui";
+
 	const props = defineProps<{ series: { label: string, values: number[] }[], ariaLabel?: string }>();
 
 	const BULAN_PENDEK = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -101,6 +82,18 @@
 
 	const hover = ref<number | null>(null);
 	const showTable = ref(false);
+
+	interface BarisBulan { bulan: string, values: number[] }
+	const tableRows = computed<BarisBulan[]>(() => BULAN.map((bulan, i) => ({ bulan, values: props.series.map((s) => s.values[i] ?? 0) })));
+	const tableColumns = computed<TableColumn<BarisBulan>[]>(() => [
+		{ accessorKey: "bulan", header: "Bulan" },
+		...props.series.map((s, i): TableColumn<BarisBulan> => ({
+			id: `s${i}`,
+			header: s.label,
+			cell: ({ row }) => angka(row.original.values[i] ?? 0),
+			meta: { class: { th: "text-right", td: "text-right tabular" } }
+		}))
+	]);
 
 	const max = computed(() => {
 		const m = Math.max(1, ...props.series.flatMap((s) => s.values));
