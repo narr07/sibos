@@ -12,6 +12,9 @@
 			>
 				Export Excel
 			</UButton>
+			<UButton icon="i-lucide-printer" :disabled="!book || loading" @click="printPdf">
+				Cetak PDF
+			</UButton>
 		</template>
 
 		<div v-if="!connected" class="py-16 text-center text-muted">
@@ -21,7 +24,7 @@
 			</UButton>
 		</div>
 
-		<div v-else class="space-y-4">
+		<div v-else class="flex min-h-0 flex-1 flex-col gap-4">
 			<div class="flex flex-wrap items-center gap-2">
 				<USelect v-model="month" :items="monthItems" icon="i-lucide-calendar-days" class="w-44" aria-label="Bulan" />
 				<UInput v-model="search" icon="i-lucide-search" placeholder="Cari uraian, no bukti, kode..." class="w-80" />
@@ -105,7 +108,7 @@
 				:columns="columns"
 				:loading="loading"
 				sticky
-				class="max-h-[calc(100vh-22rem)] border border-default rounded-md"
+				class="min-h-60 flex-1 border border-default rounded-md"
 				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
 			>
 				<template #noBukti-cell="{ row }">
@@ -174,6 +177,7 @@
 
 <script lang="ts" setup>
 	import type { TableColumn } from "@nuxt/ui";
+	import BukuKas from "~/components/Print/Laporan/BukuKas.vue";
 
 	const props = defineProps<{ kind: BookKind, title: string }>();
 
@@ -315,6 +319,14 @@
 	// Export Excel
 	const exporting = ref(false);
 	const fileLabel: Record<BookKind, string> = { umum: "BKU", bank: "Buku_Bank", tunai: "Buku_Tunai", pajak: "Buku_Pajak" };
+
+	const { open: openPrint } = usePrint();
+	const printPdf = () => {
+		if (!book.value || !year.value) return;
+		const fundLabel = funds.value.find((f) => f.id === fund.value)?.name ?? "Semua sumber dana";
+		const period = monthArg.value ? BULAN[monthArg.value - 1] : "Setahun";
+		openPrint({ title: `${props.title} ${period} ${year.value}`, landscape: true, component: BukuKas, props: { book: book.value, fundLabel } });
+	};
 
 	const exportExcel = async () => {
 		if (!year.value) return;

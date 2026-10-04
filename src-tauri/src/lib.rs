@@ -71,6 +71,8 @@ pub fn run() {
 			commands::dokumen::doc_template_list,
 			commands::dokumen::doc_template_save,
 			commands::dokumen::doc_template_delete,
+			commands::dokumen::doc_template_export,
+			commands::dokumen::doc_template_import,
 			commands::dokumen::penyedia_list,
 			commands::dokumen::penyedia_save,
 			commands::dokumen::penyedia_delete,

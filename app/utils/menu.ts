@@ -56,8 +56,6 @@ export const menuGroups: MenuGroup[] = [
 		title: "Lainnya",
 		pages: [
 			{ label: "Backup & Restore", icon: "i-lucide-database-backup", to: "/lainnya/backup", phase: 5, description: "Backup data SIBOS, restore, salin arkas.db, export semua laporan." },
-			{ label: "Integrasi Dinas", icon: "i-lucide-send", to: "/lainnya/integrasi-dinas", phase: 99, description: "Ditunda, menunggu keputusan pemilik produk." },
-			{ label: "Lisensi", icon: "i-lucide-key-round", to: "/lainnya/lisensi", phase: 99, description: "Menunggu keputusan apakah aplikasi dijual." },
 			{ label: "Template Dokumen", icon: "i-lucide-layout-template", to: "/lainnya/template", phase: 6, description: "Buat dan atur format SP, Nota, Kwitansi, BA Serah Terima." },
 			{ label: "Data Penyedia", icon: "i-lucide-store", to: "/lainnya/penyedia", phase: 6, description: "Penanggung jawab, kop, dan logo toko untuk dokumen." },
 			{ label: "Pengaturan", icon: "i-lucide-settings", to: "/lainnya/pengaturan", phase: 1, description: "Pejabat penandatangan, kop surat, nomor BA." },

@@ -4,11 +4,14 @@
 			<UButton color="neutral" variant="outline" icon="i-lucide-file-spreadsheet" :loading="busy" :disabled="!data" @click="exportXlsx">
 				Export Excel
 			</UButton>
+			<UButton icon="i-lucide-printer" :disabled="!data" @click="printPdf">
+				Cetak PDF
+			</UButton>
 		</template>
 		<div v-if="!connected" class="py-16 text-center text-muted">
 			Hubungkan ARKAS terlebih dahulu.
 		</div>
-		<div v-else class="space-y-4">
+		<div v-else class="flex min-h-0 flex-1 flex-col gap-4">
 			<div class="flex flex-wrap items-center gap-2">
 				<USelect v-model="upto" :items="uptoItems" icon="i-lucide-calendar-check" class="w-52" aria-label="Acuan s.d. bulan" />
 				<USelect v-model="status" :items="statusItems" class="w-52" />
@@ -58,7 +61,7 @@
 				sticky
 				empty="Tidak ada item."
 				:meta="{ class: { tr: (row) => row.original.luar ? 'bg-warning/5' : '' } }"
-				class="max-h-[calc(100vh-24rem)] border border-default rounded-md"
+				class="min-h-60 flex-1 border border-default rounded-md"
 				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
 			>
 				<template #kegiatan-cell="{ row }">
@@ -98,8 +101,9 @@
 
 <script lang="ts" setup>
 	import type { TableColumn } from "@nuxt/ui";
+	import RealisasiDoc from "~/components/Print/Laporan/Realisasi.vue";
 
-	const { connected, year, fund } = useArkas();
+	const { connected, year, fund, funds } = useArkas();
 	const { busy, xlsx } = useSaveFile();
 
 	const data = ref<Realisasi | null>(null);
@@ -166,6 +170,28 @@
 		{ id: "sisa", header: "Sisa", cell: ({ row }) => nilai(row.original.item?.sisa), meta: { class: nominal } },
 		{ id: "status", header: "Status", meta: { class: { th: "w-36" } } }
 	];
+
+	const { open: openPrint } = usePrint();
+	/** PDF mengikuti filter yang sedang aktif (status, pencarian, acuan bulan). */
+	const printPdf = () => {
+		if (!data.value || !year.value) return;
+		openPrint({
+			title: `Realisasi ${year.value} s.d. ${BULAN[upto.value - 1]}`,
+			landscape: true,
+			component: RealisasiDoc,
+			props: {
+				items: filtered.value,
+				luar: outside.value,
+				year: year.value,
+				upto: upto.value,
+				fundLabel: funds.value.find((f) => f.id === fund.value)?.name ?? "Semua sumber dana",
+				totalPagu: data.value.totalPagu,
+				totalRealisasi: data.value.totalRealisasi,
+				persen: Math.round(data.value.persen * 10) / 10,
+				statusLabel
+			}
+		});
+	};
 
 	const exportXlsx = () => {
 		if (!year.value) return;

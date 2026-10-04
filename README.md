@@ -58,4 +58,4 @@ src-tauri/src/
 
 ## Lisensi
 
-MIT. Kerangka awal proyek berasal dari template [Nuxtor](https://github.com/NicolaSpadari/nuxtor) karya Nicola Spadari (MIT, lihat [LICENSE.nuxtor](LICENSE.nuxtor)).
+MIT, lihat [LICENSE](LICENSE). Kerangka awal proyek berasal dari template [Nuxtor](https://github.com/NicolaSpadari/nuxtor) karya Nicola Spadari (MIT, lihat [LICENSE.nuxtor](LICENSE.nuxtor)).

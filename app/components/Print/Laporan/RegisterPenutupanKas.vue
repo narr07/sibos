@@ -108,18 +108,30 @@
 					<p>Yang diperiksa,</p>
 					<p>Bendahara/Pemegang Kas</p>
 					<p class="nama">
-						{{ pejabat?.bendahara || "(..............................)" }}
+						<template v-if="pejabat?.bendahara">
+							{{ pejabat?.bendahara }}
+						</template><span v-else class="garis-isi" />
 					</p>
-					<p>NIP. {{ pejabat?.nipBendahara || "-" }}</p>
+					<p class="min-h-[1.35em]">
+						<template v-if="pejabat?.nipBendahara">
+							NIP. {{ pejabat.nipBendahara }}
+						</template>
+					</p>
 				</div>
 				<div>
 					<p>{{ tempatTanggal }}</p>
 					<p>Yang memeriksa,</p>
 					<p>Kepala Sekolah</p>
 					<p class="nama">
-						{{ pejabat?.kepalaSekolah || "(..............................)" }}
+						<template v-if="pejabat?.kepalaSekolah">
+							{{ pejabat?.kepalaSekolah }}
+						</template><span v-else class="garis-isi" />
 					</p>
-					<p>NIP. {{ pejabat?.nipKepalaSekolah || "-" }}</p>
+					<p class="min-h-[1.35em]">
+						<template v-if="pejabat?.nipKepalaSekolah">
+							NIP. {{ pejabat.nipKepalaSekolah }}
+						</template>
+					</p>
 				</div>
 			</div>
 		</div>
@@ -218,18 +230,30 @@
 					<p>Yang diperiksa,</p>
 					<p>Bendahara/Pemegang Kas</p>
 					<p class="nama">
-						{{ pejabat?.bendahara || "(..............................)" }}
+						<template v-if="pejabat?.bendahara">
+							{{ pejabat?.bendahara }}
+						</template><span v-else class="garis-isi" />
 					</p>
-					<p>NIP. {{ pejabat?.nipBendahara || "-" }}</p>
+					<p class="min-h-[1.35em]">
+						<template v-if="pejabat?.nipBendahara">
+							NIP. {{ pejabat.nipBendahara }}
+						</template>
+					</p>
 				</div>
 				<div>
 					<p>{{ tempatTanggal }}</p>
 					<p>Yang memeriksa,</p>
 					<p>Kepala Sekolah</p>
 					<p class="nama">
-						{{ pejabat?.kepalaSekolah || "(..............................)" }}
+						<template v-if="pejabat?.kepalaSekolah">
+							{{ pejabat?.kepalaSekolah }}
+						</template><span v-else class="garis-isi" />
 					</p>
-					<p>NIP. {{ pejabat?.nipKepalaSekolah || "-" }}</p>
+					<p class="min-h-[1.35em]">
+						<template v-if="pejabat?.nipKepalaSekolah">
+							NIP. {{ pejabat.nipKepalaSekolah }}
+						</template>
+					</p>
 				</div>
 			</div>
 		</div>

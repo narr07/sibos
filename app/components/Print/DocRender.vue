@@ -1,5 +1,7 @@
 <template>
-	<PrintSheet :paper="template.kertas" :landscape="template.orientasi === 'landscape'" :margin="template.margin" :margin-top="template.marginAtas || undefined">
+	<!-- Template kanvas: elemen bebas di atas gambar latar -->
+	<PrintKanvasRender v-if="template.mode === 'kanvas'" :template="template" :g="g" :penyedia="penyedia" :urut="urut" />
+	<PrintSheet v-else :paper="template.kertas" :landscape="template.orientasi === 'landscape'" :margin="template.margin" :margin-top="template.marginAtas || undefined">
 		<div class="doc" :style="{ fontSize: `${template.ukuranHuruf || 11}pt` }">
 			<template v-for="b in template.blocks" :key="b.id">
 				<!-- Kop sekolah: sama dengan kop di Pengaturan (2 logo, 5 baris, garis ganda) -->
@@ -88,7 +90,13 @@
 					<span class="inline-block border-2 border-black px-4 py-1.5 text-[14pt] font-bold">{{ b.label }} {{ vars.total }}</span>
 				</div>
 
-				<!-- Tanda tangan -->
+				<!-- Tanda tangan: lebih dari satu kolom disejajarkan per baris -->
+				<PrintTandaTangan
+					v-else-if="b.type === 'ttd' && b.kolom.length > 1"
+					class="!mt-5"
+					:signers="b.kolom.map((s) => ({ atas: fill(s.atas), jabatan: fill(s.jabatan), nama: fill(s.nama), nip: s.nip.trim() ? fill(s.nip) : undefined }))"
+					:space="`${b.tinggi || 20}mm`"
+				/>
 				<div
 					v-else-if="b.type === 'ttd'"
 					class="mt-5 grid text-center break-inside-avoid"
@@ -103,7 +111,9 @@
 						</p>
 						<div :style="{ height: `${b.tinggi || 20}mm` }" />
 						<p class="font-bold underline">
-							{{ fill(s.nama) || "(..............................)" }}
+							<template v-if="fill(s.nama)">
+								{{ fill(s.nama) }}
+							</template><span v-else class="garis-isi" />
 						</p>
 						<p v-if="fill(s.nip)">
 							NIP. {{ fill(s.nip) }}
@@ -202,7 +212,9 @@
 							</p>
 							<div :style="{ height: `${b.tinggiTtd || 14}mm` }" />
 							<p class="font-bold underline">
-								{{ s.nama || "(..............................)" }}
+								<template v-if="s.nama">
+									{{ s.nama }}
+								</template><span v-else class="garis-isi" />
 							</p>
 							<p v-if="s.nip">
 								NIP. {{ s.nip }}

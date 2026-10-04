@@ -33,7 +33,9 @@
 					<!-- Ruang kosong cukup untuk tanda tangan di atas meterai bila diperlukan -->
 					<div class="h-[24mm] w-[50mm]" />
 					<p class="font-bold underline">
-						{{ g.nota?.namaToko || "(..............................)" }}
+						<template v-if="g.nota?.namaToko">
+							{{ g.nota?.namaToko }}
+						</template><span v-else class="garis-isi" />
 					</p>
 				</div>
 			</div>

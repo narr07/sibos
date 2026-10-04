@@ -1,19 +1,37 @@
 <template>
-	<div class="mt-8 grid text-center text-[10pt] break-inside-avoid" :style="{ gridTemplateColumns: `repeat(${Math.max(2, list.length)}, minmax(0, 1fr))` }">
-		<div v-for="(s, i) in list" :key="i" class="flex flex-col items-center px-2" :class="list.length === 1 ? 'col-start-2' : ''">
-			<p class="min-h-[1.3em]">
-				{{ s.atas ?? "" }}
-			</p>
-			<p>{{ s.jabatan }}</p>
-			<div :style="{ height: space }" />
-			<p class="font-bold underline">
-				{{ s.nama || "(..............................)" }}
-			</p>
-			<p v-if="s.nip !== undefined">
-				NIP. {{ s.nip || "-" }}
-			</p>
-		</div>
-	</div>
+	<!-- Tabel agar semua kolom sejajar per baris: judul (rata bawah), ruang ttd, nama, NIP -->
+	<table class="ttd mt-8 text-[10pt] break-inside-avoid">
+		<colgroup>
+			<col v-for="(_, i) in kolom" :key="i" :style="{ width: `${100 / kolom.length}%` }">
+		</colgroup>
+		<tbody>
+			<tr v-for="r in jumlahBarisJudul" :key="`j${r}`">
+				<td v-for="(s, i) in kolom" :key="i">
+					{{ s ? judul(s)[r - 1] ?? "" : "" }}
+				</td>
+			</tr>
+			<tr>
+				<td v-for="(_, i) in kolom" :key="i" :style="{ height: space }" />
+			</tr>
+			<tr>
+				<td v-for="(s, i) in kolom" :key="i">
+					<template v-if="s">
+						<span v-if="s.nama" class="font-bold underline">{{ s.nama }}</span>
+						<!-- Nama kosong: cukup garis untuk ditulis tangan -->
+						<span v-else class="garis-isi" />
+					</template>
+				</td>
+			</tr>
+			<tr v-if="adaNip">
+				<td v-for="(s, i) in kolom" :key="i">
+					<!-- NIP kosong: tidak dicetak, agar bisa diisi pulpen -->
+					<template v-if="s?.nip">
+						NIP. {{ s.nip }}
+					</template>
+				</td>
+			</tr>
+		</tbody>
+	</table>
 </template>
 
 <script lang="ts" setup>
@@ -35,4 +53,33 @@
 			{ atas: tempatTanggal, jabatan: "Bendahara", nama: p?.bendahara, nip: p?.nipBendahara }
 		];
 	});
+
+	/** Satu penanda tangan ditaruh di kolom kanan (kolom kiri kosong). */
+	const kolom = computed<(Penandatangan | null)[]>(() => (list.value.length === 1 ? [null, list.value[0]!] : list.value));
+
+	/** Baris judul (atas + jabatan), tanpa baris kosong. */
+	const judulMentah = (s: Penandatangan) => [...(s.atas ?? "").split("\n"), s.jabatan ?? ""].map((l) => l.trim()).filter(Boolean);
+	const jumlahBarisJudul = computed(() => Math.max(1, ...kolom.value.map((s) => (s ? judulMentah(s).length : 0))));
+	/** Judul dirata bawah: kolom dengan baris lebih sedikit diberi baris kosong di atas, sehingga jabatan sejajar. */
+	const judul = (s: Penandatangan) => {
+		const lines = judulMentah(s);
+		return [...Array.from<string>({ length: jumlahBarisJudul.value - lines.length }).fill(""), ...lines];
+	};
+
+	const adaNip = computed(() => list.value.some((s) => s.nip !== undefined));
 </script>
+
+<style scoped>
+	.ttd {
+		width: 100%;
+		border-collapse: collapse;
+		table-layout: fixed;
+	}
+	.ttd td {
+		text-align: center;
+		vertical-align: bottom;
+		padding: 0 4px;
+		line-height: 1.35;
+		height: 1.35em;
+	}
+</style>

@@ -1,5 +1,5 @@
 <template>
-	<div class="viz-root">
+	<div class="viz-root" :style="{ '--series-2': temaHangat ? 'var(--series-cool)' : 'var(--series-warm)' }">
 		<div class="flex items-center gap-4 mb-2 text-xs text-muted">
 			<span v-for="(s, i) in series" :key="s.label" class="flex items-center gap-1.5">
 				<span class="size-2.5 rounded-sm" :style="{ background: `var(--series-${i + 1})` }" />
@@ -80,6 +80,11 @@
 	const colW = (W - PAD_L - PAD_R) / 12;
 	const GAP = 2;
 
+	/** Warna tema yang sudah merah/oranye: realisasi memakai biru agar tetap kontras dengan rencana. */
+	const WARNA_HANGAT = ["red", "orange", "amber", "yellow", "rose", "pink"];
+	const appConfig = useAppConfig();
+	const temaHangat = computed(() => WARNA_HANGAT.includes(appConfig.ui.colors.primary ?? ""));
+
 	const hover = ref<number | null>(null);
 	const showTable = ref(false);
 
@@ -128,16 +133,18 @@
 </script>
 
 <style scoped>
+	/* Seri 1 (rencana) = warna utama tema; seri 2 (realisasi) = oranye, atau biru bila tema sudah merah/oranye. */
 	.viz-root {
-		--series-1: #2a78d6;
-		--series-2: #eb6834;
+		--series-1: var(--ui-primary);
+		--series-warm: #eb6834;
+		--series-cool: #2a78d6;
 		--grid: #e7e6e2;
 		--axis-text: #52514e;
 		--hover: rgba(0, 0, 0, 0.04);
 	}
 	:global(.dark) .viz-root {
-		--series-1: #3987e5;
-		--series-2: #d95926;
+		--series-warm: #d95926;
+		--series-cool: #3987e5;
 		--grid: #2e2e2c;
 		--axis-text: #c3c2b7;
 		--hover: rgba(255, 255, 255, 0.05);

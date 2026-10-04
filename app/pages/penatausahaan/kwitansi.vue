@@ -4,7 +4,7 @@
 			Hubungkan ARKAS terlebih dahulu.
 		</div>
 
-		<div v-else class="space-y-4">
+		<div v-else class="flex min-h-0 flex-1 flex-col gap-4">
 			<UAlert
 				icon="i-lucide-info"
 				color="neutral"
@@ -45,7 +45,7 @@
 				:loading="loading"
 				sticky
 				empty="Tidak ada belanja pada periode ini."
-				class="max-h-[calc(100vh-19rem)] border border-default rounded-md"
+				class="min-h-60 flex-1 border border-default rounded-md"
 				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
 			>
 				<template #pilih-header>

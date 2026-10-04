@@ -41,17 +41,15 @@
 
 	const kertas = computed(() => pengaturan.value?.cetak.kertas || "A4");
 
-	// Ukuran halaman cetak default mengikuti pengaturan (A4 atau F4) dan orientasi dokumen.
-	// Halaman bernama (a4-p, f4-l, a5-l, ...) dipakai lembar yang punya ukuran sendiri.
-	const NAMED: Record<string, [string, string]> = { a4: ["210mm", "297mm"], f4: ["215mm", "330mm"], a5: ["148mm", "210mm"] };
+	// Ukuran halaman default; tiap lembar memakai @page bernama sendiri (ukuran + margin, lihat Sheet.vue).
 	const pageStyle = computed(() => {
 		const [w, h] = kertas.value === "F4" ? ["215mm", "330mm"] : ["210mm", "297mm"];
 		const size = job.value?.landscape ? `${h} ${w}` : `${w} ${h}`;
-		const named = Object.entries(NAMED).flatMap(([k, [pw, ph]]) => [
-			`@page ${k}-p { size: ${pw} ${ph}; margin: 0; }`,
-			`@page ${k}-l { size: ${ph} ${pw}; margin: 0; }`
-		]);
-		return [`@page { size: ${size}; margin: 0; }`, ...named].join(" ");
+		// Kotak margin: judul dokumen + nomor halaman, menggantikan header/footer bawaan browser (alamat URL, tanggal).
+		const boxes = "@top-left { content: \"\" } @top-center { content: \"\" } @top-right { content: \"\" } @bottom-center { content: \"\" } "
+			+ `@bottom-left { content: ${teksCss(job.value?.title ?? "")}; font: 8pt Arial, sans-serif; color: #555; } `
+			+ "@bottom-right { content: \"Halaman \" counter(page); font: 8pt Arial, sans-serif; color: #555; }";
+		return `@page { size: ${size}; margin: 10mm; ${boxes} }`;
 	});
 
 	useHead(() => ({ style: job.value ? [{ key: "print-page", innerHTML: pageStyle.value }] : [] }));

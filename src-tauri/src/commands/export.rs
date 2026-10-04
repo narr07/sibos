@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use rust_xlsxwriter::Workbook;
 use tauri::State;
 
-use super::rkas::{kertas_kerja, load_realisasi, KertasKerja};
+use super::rkas::{kertas_kerja, load_realisasi, prefixes, KertasKerja};
 use crate::error::{validate_year, AppError, AppResult};
 use crate::export::xlsx::{add_book_sheet, add_table_sheet, Cell, TableSheet};
 use crate::pengaturan;
@@ -92,6 +92,277 @@ pub(crate) fn kertas_kerja_sheet<'a>(kk: &KertasKerja, school: &SchoolInfo, fund
 	}
 }
 
+/// Lembar "RKAS Tahunan" bertingkat: program → kegiatan → sub kegiatan → item,
+/// dengan warna per tingkat dan baris TOTAL BELANJA.
+fn add_rkas_tahunan_sheet(
+	wb: &mut Workbook,
+	kk: &KertasKerja,
+	school: &SchoolInfo,
+	fund_label: &str,
+	judul: &str,
+	triwulan: bool,
+) -> AppResult<()> {
+	use rust_xlsxwriter::{Format, FormatAlign, FormatBorder};
+	use std::collections::HashMap;
+
+	let ws = wb.add_worksheet();
+	ws.set_name("RKAS")?;
+	ws.set_landscape();
+	ws.set_paper_size(9);
+	ws.set_margins(0.4, 0.4, 0.5, 0.5, 0.3, 0.3);
+	ws.set_print_fit_to_pages(1, 0);
+	// Kolom tambahan Triwulan I-IV setelah Total untuk format triwulan.
+	let last: u16 = if triwulan { 12 } else { 8 };
+	for (c, w) in [5.0, 14.0, 35.0, 18.0, 34.0, 8.0, 10.0, 15.0, 18.0, 15.0, 15.0, 15.0, 15.0].iter().enumerate().take(last as usize + 1) {
+		ws.set_column_width(c as u16, *w)?;
+	}
+	let tw_of = |bulan: &[i64; 12]| -> [i64; 4] { std::array::from_fn(|k| bulan[k * 3..k * 3 + 3].iter().sum()) };
+
+	let base = Format::new().set_border(FormatBorder::Thin).set_align(FormatAlign::Top).set_text_wrap().set_font_size(10);
+	let money = base.clone().set_num_format("#,##0");
+	let f_title = Format::new().set_bold().set_font_size(14).set_align(FormatAlign::Center);
+	let f_center = Format::new().set_align(FormatAlign::Center);
+	let f_head = Format::new()
+		.set_bold()
+		.set_font_size(10)
+		.set_font_color("#FFFFFF")
+		.set_background_color("#2563EB")
+		.set_border(FormatBorder::Thin)
+		.set_align(FormatAlign::Center)
+		.set_align(FormatAlign::VerticalCenter)
+		.set_text_wrap();
+	// Warna latar per tingkat kode kegiatan (0 = program).
+	let level_color = ["#FCE4EC", "#D4EDDA", "#E8F5E9"];
+	let row_fmt = |level: Option<usize>| -> (Format, Format) {
+		match level {
+			Some(l) => {
+				let color = level_color[l.min(2)];
+				(base.clone().set_bold().set_background_color(color), money.clone().set_bold().set_background_color(color))
+			}
+			None => (base.clone(), money.clone()),
+		}
+	};
+
+	ws.merge_range(0, 0, 0, last, &format!("RKAS - {fund_label}"), &f_title)?;
+	ws.merge_range(1, 0, 1, last, &format!("Tahun Anggaran: {}", kk.year), &f_center)?;
+	let sekolah = format!(
+		"Sekolah: {} (NPSN: {})",
+		school.nama.clone().unwrap_or_default(),
+		school.npsn.clone().unwrap_or_default()
+	);
+	ws.merge_range(2, 0, 2, last, &sekolah, &f_center)?;
+	ws.merge_range(3, 0, 3, last, &format!("Format: Rincian RKAS ({judul})"), &f_center)?;
+
+	let headers = ["No", "Kode Kegiatan", "Nama Kegiatan", "Kode Rekening", "Uraian", "Vol", "Satuan", "Harga Satuan", "Total"];
+	let tw_headers = ["Triwulan I", "Triwulan II", "Triwulan III", "Triwulan IV"];
+	for (c, h) in headers.iter().chain(tw_headers.iter().take(if triwulan { 4 } else { 0 })).enumerate() {
+		ws.write_string_with_format(5, c as u16, *h, &f_head)?;
+	}
+	ws.set_row_height(5, 25)?;
+	ws.set_repeat_rows(5, 5)?;
+
+	let mut items: Vec<_> = kk.items.iter().collect();
+	items.sort_by(|a, b| (a.kode_kegiatan.as_deref(), a.kode_rekening.as_deref()).cmp(&(b.kode_kegiatan.as_deref(), b.kode_rekening.as_deref())));
+	let mut totals: HashMap<String, i64> = HashMap::new();
+	let mut tw_totals: HashMap<String, [i64; 4]> = HashMap::new();
+	for it in &items {
+		let tw = tw_of(&it.bulan);
+		for p in it.kode_kegiatan.as_deref().map(prefixes).unwrap_or_default() {
+			*totals.entry(p.clone()).or_default() += it.jumlah;
+			let t = tw_totals.entry(p).or_default();
+			(0..4).for_each(|k| t[k] += tw[k]);
+		}
+	}
+	let name_of = |kode: &str, level: usize| {
+		kk.kode_names.get(kode).cloned().unwrap_or_else(|| {
+			if level == 1 { format!("Kegiatan {}", kode.trim_end_matches('.')) } else { String::new() }
+		})
+	};
+
+	let mut r: u32 = 6;
+	let mut no = 0;
+	let mut seen = std::collections::HashSet::new();
+	for it in &items {
+		let codes = it.kode_kegiatan.as_deref().map(prefixes).unwrap_or_default();
+		for (level, code) in codes.iter().enumerate() {
+			if !seen.insert(code.clone()) {
+				continue;
+			}
+			no += 1;
+			let (t, m) = row_fmt(Some(level));
+			ws.write_number_with_format(r, 0, no as f64, &t)?;
+			ws.write_string_with_format(r, 1, code, &t)?;
+			ws.write_string_with_format(r, 2, name_of(code, level), &t)?;
+			for c in 3..8 {
+				ws.write_blank(r, c, &t)?;
+			}
+			ws.write_number_with_format(r, 8, totals.get(code).copied().unwrap_or(0) as f64, &m)?;
+			if triwulan {
+				for (k, v) in tw_totals.get(code).copied().unwrap_or_default().iter().enumerate() {
+					ws.write_number_with_format(r, 9 + k as u16, *v as f64, &m)?;
+				}
+			}
+			r += 1;
+		}
+		no += 1;
+		let (t, m) = row_fmt(None);
+		let kode = it.kode_kegiatan.clone().unwrap_or_default();
+		ws.write_number_with_format(r, 0, no as f64, &t)?;
+		ws.write_string_with_format(r, 1, &kode, &t)?;
+		ws.write_string_with_format(r, 2, codes.last().map(|c| name_of(c, codes.len() - 1)).unwrap_or_default(), &t)?;
+		ws.write_string_with_format(r, 3, it.kode_rekening.as_deref().unwrap_or_default(), &t)?;
+		ws.write_string_with_format(r, 4, &it.uraian, &t)?;
+		ws.write_number_with_format(r, 5, it.volume, &t)?;
+		ws.write_string_with_format(r, 6, it.satuan.as_deref().unwrap_or_default(), &t)?;
+		ws.write_number_with_format(r, 7, it.harga_satuan as f64, &m)?;
+		ws.write_number_with_format(r, 8, it.jumlah as f64, &m)?;
+		if triwulan {
+			for (k, v) in tw_of(&it.bulan).iter().enumerate() {
+				ws.write_number_with_format(r, 9 + k as u16, *v as f64, &m)?;
+			}
+		}
+		r += 1;
+	}
+	let total_fmt = base.clone().set_bold().set_font_size(11).set_background_color("#D1D5DB");
+	ws.merge_range(r, 0, r, 7, "TOTAL BELANJA", &total_fmt)?;
+	let total_money = total_fmt.clone().set_num_format("#,##0");
+	ws.write_number_with_format(r, 8, items.iter().map(|i| i.jumlah).sum::<i64>() as f64, &total_money)?;
+	if triwulan {
+		for k in 0..4 {
+			let v: i64 = items.iter().map(|i| tw_of(&i.bulan)[k]).sum();
+			ws.write_number_with_format(r, 9 + k as u16, v as f64, &total_money)?;
+		}
+	}
+	Ok(())
+}
+
+/// Nama kode rekening induk belanja (tidak tersimpan di ARKAS).
+fn nama_rekening_induk(kode: &str) -> &str {
+	match kode {
+		"5" => "BELANJA",
+		"5.1" => "BELANJA OPERASI",
+		"5.1.01" => "BELANJA PEGAWAI",
+		"5.1.02" => "BELANJA BARANG DAN JASA",
+		"5.1.02.01" => "BELANJA BARANG",
+		"5.1.02.02" => "BELANJA JASA",
+		"5.1.02.03" => "BELANJA PEMELIHARAAN",
+		"5.1.02.04" => "BELANJA PERJALANAN DINAS",
+		"5.1.02.05" => "BELANJA UANG DAN/ATAU JASA UNTUK DIBERIKAN KEPADA PIHAK KETIGA/PIHAK LAIN/MASYARAKAT",
+		"5.2" => "BELANJA MODAL",
+		"5.2.01" => "BELANJA MODAL TANAH",
+		"5.2.02" => "BELANJA MODAL PERALATAN DAN MESIN",
+		"5.2.03" => "BELANJA MODAL GEDUNG DAN BANGUNAN",
+		"5.2.04" => "BELANJA MODAL JALAN, IRIGASI, DAN JARINGAN",
+		"5.2.05" => "BELANJA MODAL ASET TETAP LAINNYA",
+		"5.2.06" => "BELANJA MODAL ASET LAINNYA",
+		_ => kode,
+	}
+}
+
+/// Lembar Kertas Kerja Unit Kerja: rincian per kode rekening induk + rencana per triwulan.
+fn add_lembar_kertas_kerja_sheet(wb: &mut Workbook, kk: &KertasKerja, school: &SchoolInfo, pemerintah: &str) -> AppResult<()> {
+	use rust_xlsxwriter::{Format, FormatAlign, FormatBorder};
+	use std::collections::BTreeMap;
+
+	let ws = wb.add_worksheet();
+	ws.set_name("Lembar Kertas Kerja")?;
+	ws.set_paper_size(9);
+	ws.set_margins(0.6, 0.6, 0.6, 0.6, 0.3, 0.3);
+	ws.set_print_fit_to_pages(1, 0);
+	for (c, w) in [14.0, 30.0, 15.0, 15.0, 15.0, 15.0, 17.0].iter().enumerate() {
+		ws.set_column_width(c as u16, *w)?;
+	}
+	let center_bold = Format::new().set_bold().set_align(FormatAlign::Center);
+	let cell = Format::new().set_border(FormatBorder::Thin).set_align(FormatAlign::Top).set_text_wrap();
+	let bold = cell.clone().set_bold();
+	let money = cell.clone().set_num_format("#,##0");
+	let money_bold = money.clone().set_bold();
+	let head = bold.clone().set_align(FormatAlign::Center);
+
+	let mut r: u32 = 0;
+	for (i, t) in ["LEMBAR KERTAS KERJA", "UNIT KERJA", pemerintah, &format!("TAHUN ANGGARAN {}", kk.year)].iter().enumerate() {
+		ws.merge_range(r, 0, r, 6, t, &if i == 0 { center_bold.clone().set_font_size(13) } else { center_bold.clone() })?;
+		r += 1;
+	}
+	r += 1;
+	ws.write_string(r, 0, "Urusan Pemerintahan")?;
+	ws.write_string(r, 2, ": 1.01 - PENDIDIKAN")?;
+	r += 1;
+	ws.write_string(r, 0, "Organisasi")?;
+	ws.write_string(
+		r,
+		2,
+		format!(": {} - {}", school.npsn.clone().unwrap_or_default(), school.nama.clone().unwrap_or_default()),
+	)?;
+	r += 2;
+
+	// Rincian per kode rekening induk (5, 5.1, 5.1.02, 5.1.02.01, ...).
+	let mut jumlah: BTreeMap<String, i64> = BTreeMap::new();
+	for k in ["5", "5.1", "5.1.02", "5.1.02.01", "5.1.02.02", "5.1.02.03", "5.1.02.04", "5.2"] {
+		jumlah.insert(k.into(), 0);
+	}
+	for it in &kk.items {
+		let parts: Vec<&str> = it.kode_rekening.as_deref().unwrap_or("").split('.').filter(|p| !p.is_empty()).collect();
+		for n in 1..=parts.len().min(4) {
+			*jumlah.entry(parts[..n].join(".")).or_default() += it.jumlah;
+		}
+	}
+	let mut kode: Vec<&String> = jumlah.keys().filter(|k| k.starts_with('5')).collect();
+	kode.sort_by_key(|k| k.split('.').map(|p| p.parse::<u32>().unwrap_or(0)).collect::<Vec<_>>());
+
+	ws.merge_range(r, 0, r, 6, "Rincian Anggaran Pendapatan dan Belanja Unit Kerja", &center_bold)?;
+	r += 1;
+	ws.write_string_with_format(r, 0, "Kode Rekening", &head)?;
+	ws.merge_range(r, 1, r, 5, "Uraian", &head)?;
+	ws.write_string_with_format(r, 6, "Jumlah (Rp)", &head)?;
+	r += 1;
+	ws.write_blank(r, 0, &bold)?;
+	ws.merge_range(r, 1, r, 5, "JUMLAH PENDAPATAN", &bold)?;
+	ws.write_blank(r, 6, &bold)?;
+	r += 1;
+	for k in kode {
+		let level = k.split('.').count();
+		let (t, m) = if k == "5" { (&bold, &money_bold) } else { (&cell, &money) };
+		let indent = "    ".repeat(level.saturating_sub(2));
+		ws.write_string_with_format(r, 0, k, t)?;
+		ws.merge_range(r, 1, r, 5, &format!("{indent}{}", nama_rekening_induk(k)), t)?;
+		ws.write_number_with_format(r, 6, jumlah[k] as f64, m)?;
+		r += 1;
+	}
+	let total: i64 = kk.items.iter().map(|i| i.jumlah).sum();
+	ws.write_blank(r, 0, &bold)?;
+	ws.merge_range(r, 1, r, 5, "Jumlah BELANJA", &bold)?;
+	ws.write_number_with_format(r, 6, total as f64, &money_bold)?;
+	r += 2;
+
+	// Rencana per triwulan.
+	ws.merge_range(r, 0, r, 6, "Rencana Pelaksanaan Anggaran Unit Kerja per Triwulan", &center_bold)?;
+	r += 1;
+	for (c, h) in ["No", "Uraian", "TW I", "TW II", "TW III", "TW IV", "Jumlah"].iter().enumerate() {
+		ws.write_string_with_format(r, c as u16, *h, &head)?;
+	}
+	r += 1;
+	let tw = |modal: Option<bool>| -> [i64; 4] {
+		std::array::from_fn(|k| {
+			kk.items
+				.iter()
+				.filter(|i| modal.is_none_or(|m| i.kode_rekening.as_deref().unwrap_or("").starts_with("5.2") == m))
+				.map(|i| i.bulan[k * 3..k * 3 + 3].iter().sum::<i64>())
+				.sum()
+		})
+	};
+	for (no, uraian, v) in [("1", "Pendapatan", tw(None)), ("2.1", "Belanja Operasi", tw(Some(false))), ("2.2", "Belanja Modal", tw(Some(true)))] {
+		ws.write_string_with_format(r, 0, no, &cell)?;
+		ws.write_string_with_format(r, 1, uraian, &cell)?;
+		for (k, x) in v.iter().enumerate() {
+			ws.write_number_with_format(r, 2 + k as u16, *x as f64, &money)?;
+		}
+		ws.write_number_with_format(r, 6, v.iter().sum::<i64>() as f64, &money_bold)?;
+		r += 1;
+	}
+	Ok(())
+}
+
 fn status_label(s: &str) -> &'static str {
 	match s {
 		"lunas" => "Lunas",
@@ -171,14 +442,52 @@ fn realisasi_sheet<'a>(r: &Realisasi, school: &SchoolInfo, fund_label: &str) -> 
 }
 
 #[tauri::command]
-pub fn export_kertas_kerja_xlsx(state: State<'_, AppState>, year: i32, fund: Option<i64>, path: String) -> AppResult<String> {
+#[allow(clippy::too_many_arguments)] // parameter command Tauri dikirim satu per satu dari frontend
+pub fn export_kertas_kerja_xlsx(
+	state: State<'_, AppState>,
+	year: i32,
+	fund: Option<i64>,
+	search: Option<String>,
+	start: Option<u32>,
+	end: Option<u32>,
+	judul: Option<String>,
+	triwulan: Option<bool>,
+	lembar: Option<bool>,
+	path: String,
+) -> AppResult<String> {
 	let year = validate_year(year)?;
 	let fund = fund.filter(|f| *f != 0);
 	let path = target(&path)?;
-	let kk = kertas_kerja(state.clone(), year, fund)?;
+	let mut kk = kertas_kerja(state.clone(), year, fund)?;
 	let (school, label) = context(&state, year, fund)?;
+	// Periode (triwulan/bulan): jumlah & volume hanya untuk bulan terpilih, item kosong dibuang.
+	let (a, b) = (start.unwrap_or(1).clamp(1, 12) as usize, end.unwrap_or(12).clamp(1, 12) as usize);
+	if (a, b) != (1, 12) {
+		for it in &mut kk.items {
+			it.jumlah = it.bulan[a - 1..b].iter().sum();
+			it.volume = it.volume_bulan[a - 1..b].iter().sum();
+		}
+		kk.items.retain(|i| i.jumlah > 0);
+	}
+	// Sama dengan pencarian di layar: hanya item yang cocok yang diekspor.
+	let q = search.map(|s| s.trim().to_lowercase()).filter(|s| !s.is_empty());
+	if let Some(q) = &q {
+		let names = kk.kode_names.clone();
+		kk.items.retain(|i| {
+			let nama = i.kode_kegiatan.as_ref().and_then(|k| names.get(k));
+			[Some(&i.uraian), i.kode_rekening.as_ref(), i.kode_kegiatan.as_ref(), nama]
+				.into_iter()
+				.flatten()
+				.any(|v| v.to_lowercase().contains(q.as_str()))
+		});
+	}
 	let mut wb = Workbook::new();
-	add_table_sheet(&mut wb, &kertas_kerja_sheet(&kk, &school, &label))?;
+	if lembar.unwrap_or(false) {
+		let p = pengaturan::gabung(&pengaturan::load(&state.app_db())?, &pengaturan::bawaan(&school));
+		add_lembar_kertas_kerja_sheet(&mut wb, &kk, &school, &p.kop.pemerintah)?;
+	} else {
+		add_rkas_tahunan_sheet(&mut wb, &kk, &school, &label, judul.as_deref().unwrap_or("Tahunan"), triwulan.unwrap_or(false))?;
+	}
 	wb.save(&path)?;
 	Ok(path.display().to_string())
 }

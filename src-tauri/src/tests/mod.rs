@@ -519,6 +519,44 @@ fn seed_doc_templates() {
 	println!("total template: {}", db.doc_templates().unwrap().len());
 }
 
+/// Cek nama rekening induk (5, 5.1, 5.1.02, ...) di ARKAS asli untuk Lembar Kertas Kerja (hanya baca).
+#[test]
+#[ignore]
+fn real_arkas_rekening_induk() {
+	let key = crate::secret::load_key().unwrap().expect("kunci belum tersimpan");
+	let path = crate::repo::arkas::default_path().unwrap();
+	let before = checksum(&path);
+	{
+		let db = ArkasDb::open(&path, &key).unwrap();
+		let names = crate::repo::arkas::rkas::rekening_names(&db, 2026).unwrap();
+		for k in ["5", "5.", "5.1", "5.1.", "5.1.02", "5.1.02.", "5.1.02.01", "5.1.02.01.", "5.1.02.04", "5.2", "5.2.02", "5.2.05", "5.2.02.", "4", "4.3.1.01."] {
+			println!("{k:>12} => {:?}", names.get(k));
+		}
+		let mut contoh: Vec<_> = names.keys().filter(|k| k.starts_with("5.2")).take(8).cloned().collect();
+		contoh.sort();
+		println!("contoh kode 5.2*: {contoh:?}");
+	}
+	assert_eq!(checksum(&path), before, "file ARKAS berubah");
+}
+
+/// Pastikan kunci ARKAS tidak ada di file yang diberikan (mis. riwayat git atau installer).
+/// Hanya mencetak ADA/TIDAK ADA, kuncinya tidak pernah ditampilkan.
+/// `SIBOS_SCAN_FILES="a|b" cargo test scan_key_leak -- --ignored --nocapture`
+#[test]
+#[ignore]
+fn scan_key_leak() {
+	let key = crate::secret::load_key().unwrap().expect("kunci belum tersimpan");
+	let files = std::env::var("SIBOS_SCAN_FILES").expect("set SIBOS_SCAN_FILES");
+	let mut leaked = false;
+	for f in files.split('|') {
+		let bytes = std::fs::read(f).unwrap();
+		let found = bytes.windows(key.len()).any(|w| w == key.as_bytes());
+		println!("{}: {}", f, if found { "ADA KUNCI" } else { "aman, tidak ada kunci" });
+		leaked |= found;
+	}
+	assert!(!leaked, "kunci ditemukan");
+}
+
 /// Isi kop surat di Pengaturan sibos.db (bukan ARKAS): teks kop + logo kiri (dibuat persegi).
 /// `SIBOS_LOGO_KIRI=... cargo test seed_kop -- --ignored --nocapture`
 #[test]

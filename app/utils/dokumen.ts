@@ -66,7 +66,60 @@ export type JenisBlok = Blok["type"];
 type TanpaId<T> = T extends unknown ? Omit<T, "id"> : never;
 export type BlokBaru = TanpaId<Blok>;
 
+// ---------------------------------------------------------------- kanvas
+
+/** Elemen pada template kanvas; posisi & ukuran dalam mm dari pojok kiri atas kertas. */
+export interface ElemenKanvas {
+	id: string
+	type: "teks" | "gambar" | "garis" | "kotak" | "tabel"
+	x: number
+	y: number
+	w: number
+	h: number
+	/** teks: isi, boleh berisi {isian}. */
+	teks?: string
+	/** Ukuran huruf (pt). */
+	ukuran?: number
+	tebal?: boolean
+	miring?: boolean
+	rata?: "left" | "center" | "right"
+	/** Perataan tegak di dalam kotak. */
+	tegak?: "top" | "middle" | "bottom"
+	font?: "serif" | "sans"
+	warna?: string
+	/** gambar: data URL. */
+	src?: string
+	/** garis/kotak: tebal garis (pt). */
+	tebalGaris?: number
+	/** tabel: kolom (lebar mm), tinggi baris (mm), garis sel. */
+	kolom?: { kunci: KolomTabel["kunci"], lebar: number }[]
+	tinggiBaris?: number
+	garisSel?: boolean
+	bersihkanNama?: boolean
+}
+
+/** Gambar latar (foto/scan kwitansi kosong). Rasio dijaga dari lebar. */
+export interface LatarKanvas {
+	src: string
+	x: number
+	y: number
+	w: number
+	/** Tinggi / lebar gambar asli. */
+	rasio: number
+	opasitas: number
+	/** false = latar hanya tampil di layar, tidak ikut dicetak (untuk kertas yang sudah bercetak). */
+	cetak: boolean
+}
+
+export interface Kanvas {
+	latar: LatarKanvas | null
+	elemen: ElemenKanvas[]
+}
+
 export interface TemplateData {
+	/** "blok" (bawaan) = blok tersusun; "kanvas" = elemen bebas di atas kertas/gambar latar. */
+	mode?: "blok" | "kanvas"
+	kanvas?: Kanvas
 	kertas: Kertas
 	orientasi: "portrait" | "landscape"
 	/** Geser tanggal dokumen dari tanggal nota (mis. -3 untuk SP). */
@@ -188,6 +241,54 @@ export const blokBaru = (type: JenisBlok): Blok => {
 		case "kwitansi": return { id, type, panelToko: true, motto: "Melayani Belanja TUNAI & Non TUNAI", warna: "#f6d9e0", visum: "bawah", tinggiTtd: 14, tinggiKotak: 75, lebarPanel: 0, lebarKotak: 245, jarakVisum: 10 };
 	}
 };
+
+/** Ukuran kertas (mm), tegak. */
+export const UKURAN_KERTAS: Record<Kertas, [number, number]> = { A4: [210, 297], F4: [215, 330], A5: [148, 210] };
+
+export const ukuranHalaman = (data: TemplateData): [number, number] => {
+	const [w, h] = UKURAN_KERTAS[data.kertas] ?? UKURAN_KERTAS.A4;
+	return data.orientasi === "landscape" ? [h, w] : [w, h];
+};
+
+export const ELEMEN_LABEL: Record<ElemenKanvas["type"], string> = {
+	teks: "Teks",
+	gambar: "Gambar",
+	garis: "Garis",
+	kotak: "Kotak",
+	tabel: "Tabel barang"
+};
+
+export const elemenBaru = (type: ElemenKanvas["type"], x = 20, y = 20, teks?: string): ElemenKanvas => {
+	const id = uid();
+	switch (type) {
+		case "teks": return { id, type, x, y, w: 60, h: 8, teks: teks ?? "Teks baru", ukuran: 11, tebal: false, miring: false, rata: "left", tegak: "middle", font: "serif", warna: "#000000" };
+		case "gambar": return { id, type, x, y, w: 25, h: 25, src: "" };
+		case "garis": return { id, type, x, y, w: 60, h: 0, tebalGaris: 1, warna: "#000000" };
+		case "kotak": return { id, type, x, y, w: 60, h: 30, tebalGaris: 1, warna: "#000000" };
+		case "tabel": return {
+			id,
+			type,
+			x,
+			y,
+			w: 170,
+			h: 60,
+			ukuran: 10,
+			font: "serif",
+			tinggiBaris: 6,
+			garisSel: false,
+			bersihkanNama: true,
+			kolom: [
+				{ kunci: "no", lebar: 10 },
+				{ kunci: "nama", lebar: 80 },
+				{ kunci: "volume_satuan", lebar: 25 },
+				{ kunci: "harga", lebar: 27 },
+				{ kunci: "jumlah", lebar: 28 }
+			]
+		};
+	}
+};
+
+export const kanvasKosong = (): Kanvas => ({ latar: null, elemen: [] });
 
 // ---------------------------------------------------------------- isian
 
@@ -489,3 +590,49 @@ export const bersihkanNama = (uraian: string) => {
 	const i = uraian.indexOf("-");
 	return i > 0 && i < 40 ? uraian.slice(i + 1).trim() : uraian;
 };
+
+/** Isi satu sel tabel barang (dipakai template blok & kanvas). */
+export const isiSelTabel = (k: KolomTabel["kunci"], it: NotaItem, i: number, bersih: boolean) => {
+	const fmtVol = (v: number | null) => (v === null || v === undefined ? "" : v.toLocaleString("id-ID"));
+	const harga = it.volume && it.volume > 0 ? Math.round(it.nominal / it.volume) : it.hargaSatuan;
+	switch (k) {
+		case "no": return String(i + 1);
+		case "nama": return bersih ? bersihkanNama(it.uraian) : it.uraian;
+		case "volume":
+		case "dipesan":
+		case "diterima":
+		case "sesuai": return fmtVol(it.volume);
+		case "satuan": return it.satuan ?? "";
+		case "volume_satuan": return `${fmtVol(it.volume)} ${it.satuan ?? ""}`.trim();
+		case "harga": return harga ? angka(harga) : "";
+		case "jumlah": return angka(it.nominal);
+		case "rusak": return "-";
+		case "kode_rekening": return it.kodeRekening ?? "";
+	}
+	return "";
+};
+
+export const kolomAngka = (k: KolomTabel["kunci"]) => ["volume", "harga", "jumlah", "dipesan", "diterima", "rusak", "sesuai"].includes(k);
+
+/** Nama kode rekening induk belanja (tidak tersimpan di ARKAS) untuk Lembar Kertas Kerja. */
+export const NAMA_REKENING_INDUK: Record<string, string> = {
+	5: "BELANJA",
+	5.1: "BELANJA OPERASI",
+	"5.1.01": "BELANJA PEGAWAI",
+	"5.1.02": "BELANJA BARANG DAN JASA",
+	"5.1.02.01": "BELANJA BARANG",
+	"5.1.02.02": "BELANJA JASA",
+	"5.1.02.03": "BELANJA PEMELIHARAAN",
+	"5.1.02.04": "BELANJA PERJALANAN DINAS",
+	"5.1.02.05": "BELANJA UANG DAN/ATAU JASA UNTUK DIBERIKAN KEPADA PIHAK KETIGA/PIHAK LAIN/MASYARAKAT",
+	5.2: "BELANJA MODAL",
+	"5.2.01": "BELANJA MODAL TANAH",
+	"5.2.02": "BELANJA MODAL PERALATAN DAN MESIN",
+	"5.2.03": "BELANJA MODAL GEDUNG DAN BANGUNAN",
+	"5.2.04": "BELANJA MODAL JALAN, IRIGASI, DAN JARINGAN",
+	"5.2.05": "BELANJA MODAL ASET TETAP LAINNYA",
+	"5.2.06": "BELANJA MODAL ASET LAINNYA"
+};
+
+/** Baris yang selalu tampil di Lembar Kertas Kerja walau nilainya 0. */
+export const REKENING_INDUK_TETAP = ["5", "5.1", "5.1.02", "5.1.02.01", "5.1.02.02", "5.1.02.03", "5.1.02.04", "5.2"];
