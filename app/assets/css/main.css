@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* Sembunyikan scrollbar tapi tetap bisa digulir (sidebar) */
+@utility no-scrollbar {
+	scrollbar-width: none;
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+@theme {
+	/* Font sistem Windows: tidak perlu mengunduh atau membundel font */
+	--font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+	--font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+}
+
+@layer utilities {
+	img {
+		user-select: none;
+		-webkit-user-drag: none;
+	}
+	.tabular {
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+/* Dokumen cetak: tabel bergaris tipis, huruf serif seperti dokumen dinas */
+.doc {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 11pt;
+	line-height: 1.35;
+	color: #000;
+}
+.doc table.tabel {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 10pt;
+	line-height: 1.3;
+}
+.doc table.tabel th,
+.doc table.tabel td {
+	border: 1px solid #000;
+	padding: 3px 6px;
+	vertical-align: top;
+}
+.doc table.tabel th {
+	text-align: center;
+	vertical-align: middle;
+	font-weight: bold;
+	background: #f2f2f2;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+	/* Judul kolom panjang turun ke baris berikutnya, tidak keluar dari tabel */
+	overflow-wrap: anywhere;
+	hyphens: auto;
+}
+.doc .num {
+	text-align: right;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+@media print {
+	html,
+	body {
+		background: #fff !important;
+	}
+	body > *:not(#print-root) {
+		display: none !important;
+	}
+	#print-root {
+		position: static !important;
+		background: #fff !important;
+	}
+	#print-root .print-toolbar {
+		display: none !important;
+	}
+	#print-root .print-scroll {
+		overflow: visible !important;
+		padding: 0 !important;
+	}
+	#print-root .print-area {
+		gap: 0 !important;
+	}
+	.print-page {
+		box-shadow: none !important;
+		break-after: page;
+		margin: 0 !important;
+	}
+	.print-page:last-child {
+		break-after: auto;
+	}
+}
+
+/* Kwitansi: jarak antarbaris lebih lega */
+.doc .kwitansi-fields td {
+	padding-top: 0.35rem !important;
+	padding-bottom: 0.35rem !important;
+}

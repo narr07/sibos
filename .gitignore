@@ -1,0 +1,29 @@
+# Editor
+.idea/
+.zed/
+.vscode/
+
+# Dependensi & build
+node_modules/
+.nuxt/
+.nitro/
+.output/
+.data/
+.cache/
+dist/
+src-tauri/target/
+src-tauri/gen/
+.cargo/
+
+# Data lokal & rahasia
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+*.log*
+.DS_Store
+
+# Berkas contoh lokal
+*.xlsx
+*.pdf
