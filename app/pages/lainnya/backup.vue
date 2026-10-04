@@ -1,6 +1,6 @@
 <template>
 	<LayoutPageShell title="Backup & Restore" :picker="false">
-		<div class="max-w-4xl mx-auto space-y-5 pb-12">
+		<div class="w-full max-w-4xl mx-auto space-y-5 pb-12">
 			<div class="grid md:grid-cols-2 gap-4">
 				<UCard>
 					<template #header>

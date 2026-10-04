@@ -29,11 +29,14 @@
 	},
 	"bundle": {
 		"active": true,
-		"targets": ["nsis"],
+		"targets": [
+			"nsis",
+			"msi"
+		],
 		"category": "Finance",
 		"shortDescription": "Pendamping ARKAS untuk SPJ BOSP",
 		"longDescription": "SIBOS membaca database ARKAS (hanya baca) untuk menyusun buku kas, laporan, dan bukti SPJ BOSP.",
-		"copyright": "",
+		"copyright": "© 2026 Dinar Permadi",
 		"icon": [
 			"icons/32x32.png",
 			"icons/128x128.png",
@@ -46,9 +49,29 @@
 				"type": "embedBootstrapper"
 			},
 			"nsis": {
-				"languages": ["Indonesian", "English"],
-				"installMode": "currentUser",
+				"languages": [
+					"Indonesian",
+					"English"
+				],
+				"installMode": "perMachine",
 				"installerIcon": "icons/icon.ico"
+			},
+			"wix": {
+				"language": "en-US"
+			}
+		},
+		"createUpdaterArtifacts": true,
+		"publisher": "Dinar Permadi",
+		"homepage": "https://github.com/narr07/sibos"
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMwREM5Rjc4QTM4QkMzMzMKUldRenc0dWplSi9jd09UeTFRR0hWQStkSkgybXQ4WnpGMzRUSnZaWCsrZFpGdTBkQkFsM3NNdGQK",
+			"endpoints": [
+				"https://github.com/narr07/sibos/releases/latest/download/latest.json"
+			],
+			"windows": {
+				"installMode": "passive"
 			}
 		}
 	}

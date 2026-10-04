@@ -1,6 +1,6 @@
 <template>
 	<LayoutPageShell title="Koneksi ARKAS" :picker="false">
-		<div class="max-w-2xl mx-auto space-y-6">
+		<div class="w-full max-w-2xl mx-auto space-y-6">
 			<UAlert
 				icon="i-lucide-shield-check"
 				color="info"

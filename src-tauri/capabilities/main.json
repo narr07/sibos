@@ -2,7 +2,9 @@
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "main",
 	"description": "Izin untuk jendela utama SIBOS",
-	"windows": ["main"],
+	"windows": [
+		"main"
+	],
 	"permissions": [
 		"core:default",
 		"core:window:allow-set-title",
@@ -10,9 +12,18 @@
 		"dialog:allow-save",
 		"dialog:allow-message",
 		"dialog:allow-confirm",
-		"opener:allow-open-url",
+		{
+			"identifier": "opener:allow-open-url",
+			"allow": [
+				{
+					"url": "https://*"
+				}
+			]
+		},
 		"opener:allow-reveal-item-in-dir",
 		"store:default",
-		"window-state:default"
+		"window-state:default",
+		"updater:default",
+		"process:allow-restart"
 	]
 }

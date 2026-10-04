@@ -55,6 +55,7 @@ export default defineNuxtConfig({
 				"lucide:database-backup",
 				"lucide:file-check",
 				"lucide:file-spreadsheet",
+				"lucide:history",
 				"lucide:info",
 				"lucide:landmark",
 				"lucide:layout-dashboard",
