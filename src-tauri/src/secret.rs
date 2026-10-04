@@ -1,5 +1,5 @@
-//! Penyimpanan kunci database ARKAS di Windows Credential Manager.
-//! Kunci tidak pernah ditulis ke file, log, atau repo.
+//! Kunci database ARKAS: dari Windows Credential Manager, atau kunci bawaan yang ditanam
+//! (tersamar) saat build dari file `.env` (lihat build.rs). Kunci tidak pernah ditulis ke log atau repo.
 
 use crate::error::{AppError, AppResult};
 
@@ -12,6 +12,18 @@ fn entry() -> AppResult<keyring::Entry> {
 	keyring::Entry::new(SERVICE, ACCOUNT).map_err(|e| AppError::Secret(e.to_string()))
 }
 
+include!(concat!(env!("OUT_DIR"), "/embedded_key.rs"));
+
+/// Kunci bawaan installer; kosong bila build tanpa `.env`.
+fn embedded_key() -> Option<String> {
+	if EMBED_DATA.is_empty() {
+		return None;
+	}
+	let bytes: Vec<u8> = EMBED_DATA.iter().zip(EMBED_PAD).map(|(d, p)| d ^ p).collect();
+	String::from_utf8(bytes).ok()
+}
+
+/// Urutan: variabel lingkungan (pengembangan) → Credential Manager → kunci bawaan installer.
 pub fn load_key() -> AppResult<Option<String>> {
 	if let Ok(key) = std::env::var(ENV_KEY) {
 		if !key.is_empty() {
@@ -20,7 +32,7 @@ pub fn load_key() -> AppResult<Option<String>> {
 	}
 	match entry()?.get_password() {
 		Ok(key) => Ok(Some(key)),
-		Err(keyring::Error::NoEntry) => Ok(None),
+		Err(keyring::Error::NoEntry) => Ok(embedded_key()),
 		Err(e) => Err(AppError::Secret(e.to_string())),
 	}
 }

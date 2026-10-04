@@ -23,7 +23,7 @@ pub struct KertasKerja {
 }
 
 /// Semua awalan kode: "05.02.08." -> ["05.", "05.02.", "05.02.08."].
-fn prefixes(kode: &str) -> Vec<String> {
+pub(crate) fn prefixes(kode: &str) -> Vec<String> {
 	let parts: Vec<&str> = kode.split('.').filter(|p| !p.is_empty()).collect();
 	(1..=parts.len()).map(|n| format!("{}.", parts[..n].join("."))).collect()
 }

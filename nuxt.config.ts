@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 			title: "SIBOS",
 			charset: "utf-8",
 			htmlAttrs: { lang: "id" },
-			link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+			link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
 			meta: [
 				{ name: "format-detection", content: "no" },
 				{ name: "viewport", content: "width=device-width, initial-scale=1" }
@@ -56,7 +56,6 @@ export default defineNuxtConfig({
 				"lucide:file-check",
 				"lucide:file-spreadsheet",
 				"lucide:info",
-				"lucide:key-round",
 				"lucide:landmark",
 				"lucide:layout-dashboard",
 				"lucide:layout-template",
@@ -65,7 +64,6 @@ export default defineNuxtConfig({
 				"lucide:receipt",
 				"lucide:scale",
 				"lucide:search",
-				"lucide:send",
 				"lucide:settings",
 				"lucide:stamp",
 				"lucide:store",

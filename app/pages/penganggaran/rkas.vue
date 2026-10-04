@@ -218,6 +218,7 @@
 
 <script lang="ts" setup>
 	import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
+	import RkasTahunan from "~/components/Print/Laporan/RkasTahunan.vue";
 
 	const { connected, year, funds } = useArkas();
 	const toast = useToast();
@@ -348,6 +349,40 @@
 		await loadList();
 	};
 
+	const { open: openPrint } = usePrint();
+	/** PDF draft memakai lembar RKAS yang sama dengan Kertas Kerja. */
+	const printDraft = () => {
+		const d = detail.value;
+		if (!d) return;
+		const items: RkasItem[] = d.items.map((it) => ({
+			idRapbs: it.id,
+			fundId: d.draft.sumberDana,
+			fundName: d.fundName,
+			kodeKegiatan: it.kodeKegiatan,
+			kodeRekening: it.kodeRekening,
+			uraian: it.uraian,
+			satuan: it.satuan,
+			volume: volume(it),
+			hargaSatuan: it.hargaSatuan,
+			jumlah: jumlah(it),
+			bulan: it.volumeBulan.map((v) => Math.round((v || 0) * it.hargaSatuan)),
+			volumeBulan: it.volumeBulan
+		}));
+		openPrint({
+			title: `Draft RKAS ${d.draft.nama}`,
+			landscape: true,
+			component: RkasTahunan,
+			props: {
+				items,
+				kodeNames: d.kodeNames,
+				fundLabel: d.fundName,
+				year: d.draft.tahun,
+				funds: funds.value,
+				judul: `Draft ${jenisLabel[d.draft.jenis]} - ${d.draft.nama}`
+			}
+		});
+	};
+
 	const exportDraft = () => {
 		if (!detail.value) return;
 		const { id, nama } = detail.value.draft;
@@ -368,7 +403,10 @@
 			{ label: "Buat versi Perubahan", icon: "i-lucide-file-plus", onSelect: () => openCopy("perubahan") },
 			{ label: "Buat versi Pergeseran", icon: "i-lucide-arrow-left-right", onSelect: () => openCopy("pergeseran") }
 		],
-		[{ label: "Export Excel", icon: "i-lucide-file-spreadsheet", onSelect: exportDraft }],
+		[
+			{ label: "Export Excel", icon: "i-lucide-file-spreadsheet", onSelect: exportDraft },
+			{ label: "Cetak PDF", icon: "i-lucide-printer", onSelect: printDraft }
+		],
 		[{ label: "Hapus draft", icon: "i-lucide-trash-2", color: "error", onSelect: removeDraft }]
 	]);
 </script>

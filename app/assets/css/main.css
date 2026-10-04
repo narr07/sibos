@@ -92,6 +92,16 @@
 	font-variant-numeric: tabular-nums;
 }
 
+/* Nama/isian kosong di dokumen cetak: garis untuk ditulis tangan */
+.garis-isi {
+	display: inline-block;
+	width: 45mm;
+	max-width: 90%;
+	border-bottom: 1px solid #000;
+	height: 1.1em;
+	vertical-align: bottom;
+}
+
 /* Pratinjau: garis merah putus-putus menandai batas tiap lembar kertas.
    Isi yang melewati garis akan tercetak di lembar berikutnya. */
 .print-page {
@@ -129,6 +139,10 @@
 	.print-page {
 		box-shadow: none !important;
 		background-image: none !important;
+		/* Margin dipasang di @page bernama (lihat Sheet.vue), jadi lembar lanjutan juga bermargin.
+		   Lebar mengikuti kertas agar lembar landscape tidak mengecilkan lembar portrait. */
+		width: auto !important;
+		padding: 0 !important;
 		/* Jangan paksa setinggi kertas: pembulatan ukuran bisa menambah lembar kosong */
 		min-height: 0 !important;
 		break-after: page;

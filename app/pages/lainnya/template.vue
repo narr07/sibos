@@ -17,12 +17,17 @@
 					</div>
 				</template>
 			</UPopover>
+			<UDropdownMenu :items="berkasMenu" :content="{ align: 'end' }">
+				<UButton color="neutral" variant="outline" icon="i-lucide-folder-sync" trailing-icon="i-lucide-chevron-down">
+					Export / Import
+				</UButton>
+			</UDropdownMenu>
 			<UButton icon="i-lucide-save" :loading="saving" :disabled="!draft" @click="save">
 				Simpan
 			</UButton>
 		</template>
 
-		<div class="grid xl:grid-cols-[16rem_minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[16rem_minmax(0,1fr)] gap-4">
+		<div class="grid lg:grid-cols-[16rem_minmax(0,1fr)] gap-4" :class="isKanvas ? '' : 'xl:grid-cols-[16rem_minmax(0,1fr)_minmax(0,1fr)]'">
 			<!-- Daftar template -->
 			<div class="space-y-3">
 				<UButton block icon="i-lucide-plus" @click="createOpen = true">
@@ -80,12 +85,12 @@
 								<USelect v-model="draft.data.orientasi" :items="[{ label: 'Tegak', value: 'portrait' }, { label: 'Mendatar', value: 'landscape' }]" size="sm" />
 							</UFormField>
 						</div>
-						<div class="grid grid-cols-4 gap-2">
+						<div v-if="!isKanvas" class="grid grid-cols-4 gap-2">
 							<UFormField label="Margin (mm)">
-								<UInputNumber v-model="draft.data.margin" :min="5" :max="30" size="sm" />
+								<UInputNumber v-model="draft.data.margin" :min="10" :max="30" size="sm" />
 							</UFormField>
 							<UFormField label="Margin atas / jilid (mm)">
-								<UInputNumber :model-value="draft.data.marginAtas ?? draft.data.margin" :min="5" :max="60" size="sm" @update:model-value="(v) => (draft!.data.marginAtas = Number(v) || undefined)" />
+								<UInputNumber :model-value="draft.data.marginAtas ?? draft.data.margin" :min="10" :max="60" size="sm" @update:model-value="(v) => (draft!.data.marginAtas = Number(v) || undefined)" />
 							</UFormField>
 							<UFormField label="Huruf (pt)">
 								<UInputNumber v-model="draft.data.ukuranHuruf" :min="8" :max="14" size="sm" />
@@ -112,7 +117,18 @@
 					</p>
 				</UCard>
 
-				<div v-for="(b, i) in draft.data.blocks" :key="b.id" class="rounded-md border border-default">
+				<template v-if="isKanvas">
+					<div class="flex items-center gap-2">
+						<p class="text-sm font-medium">
+							Contoh data
+						</p>
+						<USelectMenu v-model="sampleKey" :items="sampleItems" value-key="value" size="sm" class="flex-1 min-w-0 max-w-md" placeholder="Pilih contoh nota" />
+						<USwitch v-model="tampilIsi" size="sm" label="Tampilkan data contoh" />
+					</div>
+					<DokumenKanvasEditor v-model="draft.data" :vars="tampilIsi ? kanvasVars : null" :items="tampilIsi ? sample?.items : undefined" />
+				</template>
+
+				<div v-for="(b, i) in (isKanvas ? [] : draft.data.blocks)" :key="b.id" class="rounded-md border border-default">
 					<div class="flex items-center gap-1 px-2 py-1.5 bg-elevated/60 rounded-t-md">
 						<UButton
 							color="neutral"
@@ -136,7 +152,7 @@
 				</div>
 
 				<div class="flex flex-wrap gap-2">
-					<UDropdownMenu :items="addItems">
+					<UDropdownMenu v-if="!isKanvas" :items="addItems">
 						<UButton icon="i-lucide-plus" color="neutral" variant="outline">
 							Tambah blok
 						</UButton>
@@ -154,7 +170,7 @@
 			</div>
 
 			<!-- Pratinjau -->
-			<div v-if="draft" class="space-y-2 min-w-0 lg:col-span-2 xl:col-span-1">
+			<div v-if="draft && !isKanvas" class="space-y-2 min-w-0 lg:col-span-2 xl:col-span-1">
 				<div class="flex items-center gap-2">
 					<p class="text-sm font-medium">
 						Pratinjau
@@ -208,7 +224,7 @@
 	import type { DropdownMenuItem } from "@nuxt/ui";
 
 	const { connected, year } = useArkas();
-	const { load: loadDoc } = useDocContext();
+	const { load: loadDoc, pengaturan, sekolah } = useDocContext();
 	const toast = useToast();
 	const { copy } = useClipboard();
 
@@ -232,6 +248,21 @@
 		return penyedia.value.find((p) => p.nama.trim().toLowerCase() === n)?.data ?? null;
 	};
 
+	const isKanvas = computed(() => draft.value?.data.mode === "kanvas");
+	const tampilIsi = ref(true);
+	/** Isian contoh untuk editor kanvas (dari nota contoh yang dipilih). */
+	const kanvasVars = computed(() => {
+		if (!draft.value || !sample.value) return null;
+		return buildVars({
+			g: sample.value,
+			sekolah: sekolah.value,
+			pengaturan: pengaturan.value,
+			penyedia: penyediaFor(sample.value),
+			urut: urutan.value[sample.value.key] ?? 1,
+			template: draft.value.data
+		});
+	});
+
 	const select = (id: string) => {
 		const t = templates.value.find((x) => x.id === id);
 		if (!t) return;
@@ -245,6 +276,39 @@
 		penyedia.value = await api.penyediaList().catch(() => []);
 		if (!selectedId.value && templates.value[0]) select(templates.value[0].id);
 	};
+
+	// Export/Import file template (.json) agar bisa dibagikan ke sekolah lain atau dipindah antarkomputer.
+	const exportTemplates = async (ids: string[], nama: string) => {
+		try {
+			const path = await useTauriDialogSave({ defaultPath: `${fileSafe(nama)}.json`, filters: [{ name: "Template SIBOS", extensions: ["json"] }] });
+			if (!path) return;
+			const n = await api.docTemplateExport(ids, path);
+			toast.add({ title: `${n} template diekspor`, description: path, color: "success" });
+		} catch (err) {
+			toast.add({ title: "Gagal export template", description: errorMessage(err), color: "error" });
+		}
+	};
+	const importTemplates = async () => {
+		try {
+			const path = await useTauriDialogOpen({ multiple: false, directory: false, filters: [{ name: "Template SIBOS", extensions: ["json"] }] });
+			if (typeof path !== "string") return;
+			const n = await api.docTemplateImport(path);
+			toast.add({ title: `${n} template diimpor`, description: "Template lama tidak ditimpa; nama yang sama diberi akhiran (impor).", color: "success" });
+			await load();
+		} catch (err) {
+			toast.add({ title: "Gagal import template", description: errorMessage(err), color: "error" });
+		}
+	};
+	const berkasMenu = computed<DropdownMenuItem[][]>(() => {
+		const current = templates.value.find((t) => t.id === selectedId.value);
+		return [
+			[
+				...(current ? [{ label: `Export "${current.nama}"`, icon: "i-lucide-file-down", onSelect: () => exportTemplates([current.id], `Template_${current.nama}`) }] : []),
+				{ label: "Export semua template", icon: "i-lucide-files", disabled: !templates.value.length, onSelect: () => exportTemplates([], "Template_SIBOS") }
+			],
+			[{ label: "Import dari file...", icon: "i-lucide-file-up", onSelect: importTemplates }]
+		];
+	});
 
 	const loadSamples = async () => {
 		if (!connected.value || !year.value) return;
@@ -351,12 +415,14 @@
 	const createOpen = ref(false);
 	const createForm = reactive<{ nama: string, jenis: JenisDokumen, dari: string }>({ nama: "", jenis: "nota", dari: "kosong" });
 	const dariItems = computed(() => [
-		{ label: "Kosong", value: "kosong" },
+		{ label: "Kanvas: dari foto/scan kwitansi kosong", value: "kanvas" },
+		{ label: "Kosong (blok)", value: "kosong" },
 		...TEMPLATE_AWAL().map((t, i) => ({ label: `Contoh: ${t.nama}`, value: `awal:${i}` })),
 		...templates.value.map((t) => ({ label: `Salin: ${t.nama}`, value: `salin:${t.id}` }))
 	]);
 	const create = async () => {
 		let data: TemplateData = { kertas: "A4", orientasi: "portrait", geserHari: 0, nomorFormat: "{no_bukti}", ukuranHuruf: 11, margin: 15, blocks: [blokBaru("judul")] };
+		if (createForm.dari === "kanvas") data = { ...data, mode: "kanvas", kanvas: kanvasKosong(), margin: 0, blocks: [] };
 		if (createForm.dari.startsWith("awal:")) data = TEMPLATE_AWAL()[Number(createForm.dari.slice(5))]?.data ?? data;
 		if (createForm.dari.startsWith("salin:")) data = structuredClone(toRaw(templates.value.find((t) => t.id === createForm.dari.slice(6))?.data)) ?? data;
 		saving.value = true;

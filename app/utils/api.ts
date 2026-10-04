@@ -32,6 +32,7 @@ export interface ConnectionStatus {
 export interface FundSource {
 	id: number
 	name: string
+	kode: string | null
 }
 
 export interface TableInfo {
@@ -206,6 +207,8 @@ export const api = {
 	docTemplateList: () => call<DocTemplate[]>("doc_template_list"),
 	docTemplateSave: (template: Omit<DocTemplate, "updatedAt"> & { updatedAt?: string }) => call<string>("doc_template_save", { template: { updatedAt: "", ...template } }),
 	docTemplateDelete: (id: string) => call<void>("doc_template_delete", { id }),
+	docTemplateExport: (ids: string[], path: string) => call<number>("doc_template_export", { ids, path }),
+	docTemplateImport: (path: string) => call<number>("doc_template_import", { path }),
 	penyediaList: () => call<Penyedia[]>("penyedia_list"),
 	penyediaSave: (penyedia: Penyedia) => call<void>("penyedia_save", { penyedia }),
 	penyediaDelete: (nama: string) => call<void>("penyedia_delete", { nama }),
@@ -246,7 +249,8 @@ export const api = {
 	rkasDraftExportXlsx: (id: string, path: string) => call<string>("rkas_draft_export_xlsx", { id, path }),
 
 	// Export & backup
-	exportKertasKerjaXlsx: (year: number, fund: number | null, path: string) => call<string>("export_kertas_kerja_xlsx", { year, fund, path }),
+	exportKertasKerjaXlsx: (year: number, fund: number | null, search: string, start: number, end: number, judul: string, triwulan: boolean, lembar: boolean, path: string) =>
+		call<string>("export_kertas_kerja_xlsx", { year, fund, search, start, end, judul, triwulan, lembar, path }),
 	exportRealisasiXlsx: (year: number, upto: number | null, fund: number | null, path: string) =>
 		call<string>("export_realisasi_xlsx", { year, upto, fund, path }),
 	exportAllXlsx: (year: number, fund: number | null, path: string) => call<string>("export_all_xlsx", { year, fund, path }),

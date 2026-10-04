@@ -15,6 +15,8 @@ use crate::error::AppResult;
 pub struct FundSource {
 	pub id: i64,
 	pub name: String,
+	/// Kode rekening penerimaan, mis. "4.3.1.01.".
+	pub kode: Option<String>,
 }
 
 #[derive(Debug, Serialize, Clone, Default)]
@@ -118,16 +120,22 @@ pub fn available_years(db: &ArkasDb) -> AppResult<Vec<i32>> {
 
 /// Sumber dana yang punya anggaran di tahun tertentu.
 pub fn fund_sources(db: &ArkasDb, year: i32) -> AppResult<Vec<FundSource>> {
-	let mut stmt = db.conn().prepare(
-		"SELECT DISTINCT sd.id_ref_sumber_dana, sd.nama_sumber_dana
+	// Kolom `kode` tidak selalu ada di versi ARKAS lama.
+	let kode = if has_column(db, "ref_sumber_dana", "kode")? { "sd.kode" } else { "NULL" };
+	let mut stmt = db.conn().prepare(&format!(
+		"SELECT DISTINCT sd.id_ref_sumber_dana, sd.nama_sumber_dana, {kode}
 		 FROM anggaran a
 		 JOIN ref_sumber_dana sd ON a.id_ref_sumber_dana = sd.id_ref_sumber_dana
 		 WHERE CAST(a.tahun_anggaran AS INTEGER) = ?1 AND a.soft_delete = 0
-		 ORDER BY sd.nama_sumber_dana",
-	)?;
+		 ORDER BY sd.nama_sumber_dana"
+	))?;
 	let rows = stmt
 		.query_map(params![year], |row| {
-			Ok(FundSource { id: row.get(0)?, name: row.get::<_, String>(1)?.trim().to_string() })
+			Ok(FundSource {
+				id: row.get(0)?,
+				name: row.get::<_, String>(1)?.trim().to_string(),
+				kode: row.get::<_, Option<String>>(2)?.map(|k| k.trim().to_string()),
+			})
 		})?
 		.collect::<Result<Vec<_>, _>>()?;
 	Ok(rows)
