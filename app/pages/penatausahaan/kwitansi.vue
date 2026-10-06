@@ -119,11 +119,20 @@
 						(bisa langsung dari contoh Excel).
 					</p>
 					<div v-for="j in JENIS_DOKUMEN" :key="j.value" class="flex items-center gap-3 rounded-md border border-default px-3 py-2" :class="hasTemplate(j.value) ? '' : 'opacity-50'">
-						<UCheckbox :model-value="docJenis.includes(j.value)" :disabled="!hasTemplate(j.value)" :label="j.label" @update:model-value="(v) => toggleJenis(j.value, !!v)" />
-						<span class="ml-auto text-xs text-muted text-right">{{ templateLabel(j.value) }}</span>
+						<UCheckbox :model-value="docJenis.includes(j.value)" :disabled="!hasTemplate(j.value)" :label="j.label" class="w-40 shrink-0" @update:model-value="(v) => toggleJenis(j.value, !!v)" />
+						<USelect
+							v-if="hasTemplate(j.value)"
+							:model-value="docPilihan[j.value] ?? 'auto'"
+							:items="templateItems(j.value)"
+							size="sm"
+							class="flex-1 min-w-0"
+							:aria-label="`Template ${j.label}`"
+							@update:model-value="(v) => pilihTemplate(j.value, String(v))"
+						/>
+						<span v-else class="ml-auto text-xs text-muted">tidak ada template</span>
 					</div>
 					<p class="text-xs text-muted">
-						Template khusus toko dipakai otomatis bila nama toko cocok; selain itu template umum.
+						"Otomatis" memakai template khusus toko bila nama toko cocok, selain itu template umum. Pilih template tertentu untuk memakainya di semua transaksi terpilih.
 					</p>
 				</div>
 			</template>
@@ -417,10 +426,27 @@
 		if (saved) docJenis.value = JSON.parse(saved);
 	} catch {}
 
+	const PILIHAN_KEY = "sibos-doc-template";
+	/** Template pilihan per jenis dokumen; "auto" = sesuai toko. */
+	const docPilihan = ref<Partial<Record<JenisDokumen, string>>>({});
+	try {
+		docPilihan.value = JSON.parse(localStorage.getItem(PILIHAN_KEY) ?? "{}");
+	} catch {}
+	const pilihTemplate = (j: JenisDokumen, id: string) => {
+		docPilihan.value = { ...docPilihan.value, [j]: id };
+		try {
+			localStorage.setItem(PILIHAN_KEY, JSON.stringify(docPilihan.value));
+		} catch {}
+	};
+
 	const hasTemplate = (j: JenisDokumen) => docTemplates.value.some((t) => t.jenis === j);
-	const templateLabel = (j: JenisDokumen) => {
+	/** Pilihan template: Otomatis (menyebut template yang akan terpakai) + semua template jenis itu. */
+	const templateItems = (j: JenisDokumen) => {
 		const names = [...new Set(selected.value.map((g) => templateUntuk(docTemplates.value, j, g.nota?.namaToko)?.nama).filter(Boolean))];
-		return names.length ? names.join(", ") : "tidak ada template";
+		return [
+			{ label: `Otomatis${names.length ? ` (${names.join(", ")})` : ""}`, value: "auto" },
+			...docTemplates.value.filter((t) => t.jenis === j).map((t) => ({ label: t.nama, value: t.id }))
+		];
 	};
 	const toggleJenis = (j: JenisDokumen, on: boolean) => {
 		const set = new Set(docJenis.value);
@@ -450,7 +476,7 @@
 			openPrint({
 				title: `Dokumen (${list.length} transaksi)`,
 				component: DocBatch,
-				props: { groups: list, jenis, templates: docTemplates.value, penyedia: docPenyedia.value, urutan }
+				props: { groups: list, jenis, templates: docTemplates.value, penyedia: docPenyedia.value, urutan, pilihan: docPilihan.value }
 			});
 		} catch (err) {
 			toast.add({ title: "Gagal menyiapkan dokumen", description: errorMessage(err), color: "error" });

@@ -12,8 +12,13 @@ export interface PrintJob {
 /** Pratinjau cetak global (lihat components/Print/PrintPreview.vue). */
 export const usePrint = () => {
 	const job = useState<PrintJob | null>("print-job", () => null);
+	/** Kertas cetak pilihan di pratinjau: A4 (210 × 297 mm) atau F4 (210 × 330 mm). */
+	const kertas = useState<"A4" | "F4" | null>("print-kertas", () => null);
 
 	const open = (next: PrintJob) => {
+		// Otomatis A4 (atau F4 bila itu yang diatur di Pengaturan); pengguna bisa ganti di toolbar.
+		const pengaturan = useState<Pengaturan | null>("doc-pengaturan");
+		kertas.value = pengaturan.value?.cetak.kertas === "F4" ? "F4" : "A4";
 		job.value = { ...next, component: markRaw(next.component) };
 	};
 
@@ -21,7 +26,7 @@ export const usePrint = () => {
 		job.value = null;
 	};
 
-	return { job, open, close };
+	return { job, kertas, open, close };
 };
 
 /** Data untuk kop & tanda tangan dokumen: pengaturan efektif + profil sekolah. */

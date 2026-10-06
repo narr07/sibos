@@ -14,6 +14,8 @@
 		penyedia: Penyedia[]
 		/** Nomor urut tiap nota dalam tahun (kunci = key nota). */
 		urutan: Record<string, number>
+		/** Template pilihan per jenis (id template); kosong/"auto" = sesuai toko. */
+		pilihan?: Partial<Record<JenisDokumen, string>>
 	}>();
 
 	const findPenyedia = (nama: string | null | undefined) => {
@@ -23,7 +25,9 @@
 	};
 
 	const pages = computed(() => props.groups.flatMap((g) => props.jenis.flatMap((j) => {
-		const template = templateUntuk(props.templates, j, g.nota?.namaToko);
+		const id = props.pilihan?.[j];
+		const dipilih = id && id !== "auto" ? props.templates.find((t) => t.id === id && t.jenis === j) : undefined;
+		const template = dipilih ?? templateUntuk(props.templates, j, g.nota?.namaToko);
 		if (!template) return [];
 		return [{ key: `${g.key}:${j}`, g, template, penyedia: findPenyedia(g.nota?.namaToko), urut: props.urutan[g.key] ?? 1 }];
 	})));

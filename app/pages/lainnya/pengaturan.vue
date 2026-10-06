@@ -197,7 +197,7 @@
 		{ key: "tanggalSk", label: "Tanggal SK", hint: "Contoh: 02 Januari 2026" },
 		{ key: "tempat", label: "Tempat rekonsiliasi", hint: "Nama tempat" }
 	];
-	const kertasItems = [{ label: "A4", value: "A4" }, { label: "F4 / Folio", value: "F4" }];
+	const kertasItems = [{ label: "A4 (210 × 297 mm)", value: "A4" }, { label: "F4 (210 × 330 mm)", value: "F4" }];
 
 	const load = async () => {
 		error.value = "";
