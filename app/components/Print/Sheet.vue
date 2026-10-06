@@ -18,12 +18,12 @@
 	}>();
 	const { pengaturan } = useDocContext();
 
-	const SIZES = { A4: [210, 297], F4: [215, 330], A5: [148, 210] } as const;
+	const SIZES = { A4: [210, 297], F4: [210, 330], A5: [148, 210] } as const;
 	/**
 	 * Kotak margin halaman: judul dokumen di kiri bawah, nomor halaman di kanan bawah. Dengan kotak
 	 * margin terisi, header/footer bawaan browser (alamat, tanggal) tidak ikut dicetak.
 	 */
-	const { job } = usePrint();
+	const { job, kertas } = usePrint();
 	const marginBoxes = computed(() => [
 		"@top-left { content: \"\" }",
 		"@top-center { content: \"\" }",
@@ -36,7 +36,9 @@
 	const MIN_MARGIN = 10;
 
 	const layout = computed(() => {
-		const paper = props.paper ?? (pengaturan.value?.cetak.kertas === "F4" ? "F4" : "A4");
+		const bawaan = props.paper ?? (pengaturan.value?.cetak.kertas === "F4" ? "F4" : "A4");
+		// Pilihan A4/F4 di pratinjau berlaku untuk semua lembar A4/F4 (A5 dan kanvas tetap ukuran aslinya).
+		const paper = kertas.value && bawaan !== "A5" && !props.exact ? kertas.value : bawaan;
 		const [w, h] = SIZES[paper];
 		const [width, height] = props.landscape ? [h, w] : [w, h];
 		const min = props.exact ? 0 : MIN_MARGIN;

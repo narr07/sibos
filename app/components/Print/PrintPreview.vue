@@ -6,9 +6,18 @@
 				<p class="font-medium">
 					{{ job.title }}
 				</p>
-				<UBadge color="neutral" variant="subtle" class="ml-2">
-					{{ kertas }} {{ job.landscape ? "landscape" : "portrait" }}
-				</UBadge>
+				<UFieldGroup size="sm" class="ml-2">
+					<UButton
+						v-for="k in KERTAS"
+						:key="k"
+						:color="kertas === k ? 'primary' : 'neutral'"
+						:variant="kertas === k ? 'solid' : 'outline'"
+						@click="kertas = k"
+					>
+						{{ k === "F4" ? "F4 / Folio" : k }}
+					</UButton>
+				</UFieldGroup>
+				<span class="text-xs text-muted">{{ kertas === "F4" ? "210 × 330 mm" : "210 × 297 mm" }}</span>
 				<p class="text-xs text-muted ml-2 hidden lg:block">
 					Untuk PDF, pilih printer "Microsoft Print to PDF".
 				</p>
@@ -31,7 +40,8 @@
 </template>
 
 <script lang="ts" setup>
-	const { job, close } = usePrint();
+	const { job, kertas, close } = usePrint();
+	const KERTAS = ["A4", "F4"] as const;
 	const { pengaturan, load } = useDocContext();
 
 	// Muat ulang kop, pejabat, dan data sekolah setiap kali pratinjau dibuka.
@@ -39,11 +49,12 @@
 		if (j) load().catch(() => {});
 	});
 
-	const kertas = computed(() => pengaturan.value?.cetak.kertas || "A4");
+	/** Kertas aktif: pilihan di toolbar, atau bawaan dari Pengaturan. */
+	const kertasAktif = computed(() => kertas.value ?? (pengaturan.value?.cetak.kertas === "F4" ? "F4" : "A4"));
 
 	// Ukuran halaman default; tiap lembar memakai @page bernama sendiri (ukuran + margin, lihat Sheet.vue).
 	const pageStyle = computed(() => {
-		const [w, h] = kertas.value === "F4" ? ["215mm", "330mm"] : ["210mm", "297mm"];
+		const [w, h] = kertasAktif.value === "F4" ? ["210mm", "330mm"] : ["210mm", "297mm"];
 		const size = job.value?.landscape ? `${h} ${w}` : `${w} ${h}`;
 		// Kotak margin: judul dokumen + nomor halaman, menggantikan header/footer bawaan browser (alamat URL, tanggal).
 		const boxes = "@top-left { content: \"\" } @top-center { content: \"\" } @top-right { content: \"\" } @bottom-center { content: \"\" } "

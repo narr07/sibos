@@ -243,7 +243,7 @@ export const blokBaru = (type: JenisBlok): Blok => {
 };
 
 /** Ukuran kertas (mm), tegak. */
-export const UKURAN_KERTAS: Record<Kertas, [number, number]> = { A4: [210, 297], F4: [215, 330], A5: [148, 210] };
+export const UKURAN_KERTAS: Record<Kertas, [number, number]> = { A4: [210, 297], F4: [210, 330], A5: [148, 210] };
 
 export const ukuranHalaman = (data: TemplateData): [number, number] => {
 	const [w, h] = UKURAN_KERTAS[data.kertas] ?? UKURAN_KERTAS.A4;
