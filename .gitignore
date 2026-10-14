@@ -27,3 +27,7 @@ src-tauri/gen/
 # Berkas contoh lokal
 *.xlsx
 *.pdf
+/SPPD 2026/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

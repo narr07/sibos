@@ -9,6 +9,21 @@ export interface VersiRilis {
 
 export const CHANGELOG: VersiRilis[] = [
 	{
+		versi: "0.2.0",
+		tanggal: "2026-10-14",
+		judul: "Generator dokumen SPJ",
+		ringkasan: "Menu Generator baru untuk membuat bukti SPJ konsumsi rapat dan perjalanan dinas langsung dari belanja di BKU ARKAS.",
+		perubahan: [
+			{ jenis: "baru", teks: "Generator Konsumsi Rapat: Surat Undangan, Daftar Hadir, Berita Acara, dan Notulen dari belanja konsumsi di BKU" },
+			{ jenis: "baru", teks: "Judul rapat diambil dari uraian belanja, bisa diganti atau dipilih dari saran; isi notulen menyesuaikan judul" },
+			{ jenis: "baru", teks: "Notulis rapat bergilir otomatis dan bisa dipilih dari daftar guru" },
+			{ jenis: "baru", teks: "Generator SPPD: Surat Tugas, SPD, Kuitansi, Rincian Biaya & SPPD Rampung, Daftar Pengeluaran Riil, dan Laporan Pelaksanaan Tugas" },
+			{ jenis: "baru", teks: "Belanja yang tercatat di rekening lain bisa dicari dan dipilih sendiri di generator" },
+			{ jenis: "baru", teks: "Pengaturan: daftar guru dan tenaga kependidikan (NIP, pangkat/golongan, tugas, wali kelas/mata pelajaran)" },
+			{ jenis: "ubah", teks: "Dokumen generator memakai huruf maksimal 12pt, termasuk kop surat" }
+		]
+	},
+	{
 		versi: "0.1.0",
 		tanggal: "2026-10-05",
 		judul: "Rilis pertama SIBOS",
