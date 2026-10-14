@@ -50,6 +50,7 @@ export default defineNuxtConfig({
 			// Ikon menu ditulis di file .ts (app/utils/menu.ts), pastikan ikut dibundel
 			icons: [
 				"lucide:book-open",
+				"lucide:car",
 				"lucide:chart-column",
 				"lucide:coins",
 				"lucide:database-backup",
@@ -69,6 +70,7 @@ export default defineNuxtConfig({
 				"lucide:stamp",
 				"lucide:store",
 				"lucide:table",
+				"lucide:users-round",
 				"lucide:wallet"
 			]
 		}

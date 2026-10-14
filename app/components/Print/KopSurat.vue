@@ -5,13 +5,13 @@
 				<img v-if="k?.logoKiri" :src="k.logoKiri" alt="">
 			</div>
 			<div class="text-center leading-[1.15]" style="font-family: 'Times New Roman', Times, serif">
-				<p v-if="k?.pemerintah" class="text-[12pt] font-bold uppercase">
+				<p v-if="k?.pemerintah" class="font-bold uppercase" :class="ringkas ? 'text-[11pt]' : 'text-[12pt]'">
 					{{ k.pemerintah }}
 				</p>
-				<p v-if="k?.dinas" class="text-[12pt] font-bold uppercase">
+				<p v-if="k?.dinas" class="font-bold uppercase" :class="ringkas ? 'text-[11pt]' : 'text-[12pt]'">
 					{{ k.dinas }}
 				</p>
-				<p class="text-[14pt] font-bold uppercase">
+				<p class="font-bold uppercase" :class="ringkas ? 'text-[12pt]' : 'text-[14pt]'">
 					{{ k?.namaSekolah || sekolah?.nama }}
 				</p>
 				<p v-if="barisAlamat" class="text-[9pt] italic">
@@ -33,7 +33,11 @@
 
 <script lang="ts" setup>
 	/** Kop surat sekolah. `kop` dipakai untuk pratinjau di Pengaturan; bila kosong memakai pengaturan tersimpan. */
-	const props = defineProps<{ kop?: Pengaturan["kop"] | null }>();
+	const props = defineProps<{
+		kop?: Pengaturan["kop"] | null
+		/** Huruf kop maksimal 12pt (dokumen generator). */
+		ringkas?: boolean
+	}>();
 	const { pengaturan, sekolah } = useDocContext();
 
 	const k = computed(() => props.kop ?? pengaturan.value?.kop ?? null);

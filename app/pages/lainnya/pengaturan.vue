@@ -91,6 +91,40 @@
 
 			<UCard>
 				<template #header>
+					<div class="flex items-center justify-between gap-2">
+						<p class="font-medium">
+							Guru & tenaga kependidikan
+						</p>
+						<UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-user-round-check" @click="guruDariPejabat">
+							Tambah dari pejabat
+						</UButton>
+					</div>
+				</template>
+				<p class="text-xs text-muted mb-3">
+					Dipakai untuk daftar hadir rapat dan SPPD di menu Generator (pangkat/golongan hanya untuk SPPD). Urutan di sini menjadi urutan di daftar hadir.
+				</p>
+				<div class="space-y-2">
+					<div v-for="(g, i) in guru" :key="g.id" class="grid grid-cols-[1.5rem_1.5fr_1.1fr_1fr_0.9fr_1fr_auto] items-center gap-2">
+						<span class="text-sm text-muted text-right">{{ i + 1 }}</span>
+						<UInput v-model="g.nama" placeholder="Nama lengkap dan gelar" :aria-label="`Nama guru ${i + 1}`" />
+						<UInput v-model="g.nip" placeholder="NIP / NUPTK" :aria-label="`NIP guru ${i + 1}`" />
+						<UInput v-model="g.pangkat" placeholder="Pangkat / Gol." :aria-label="`Pangkat golongan guru ${i + 1}`" />
+						<UInput v-model="g.tugas" placeholder="Tugas, mis. Guru Kelas" :aria-label="`Tugas guru ${i + 1}`" />
+						<UInput v-model="g.kelasMapel" placeholder="Wali Kelas 4 / PJOK" :aria-label="`Kelas atau mata pelajaran guru ${i + 1}`" />
+						<div class="flex">
+							<UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-arrow-up" :disabled="i === 0" aria-label="Naikkan" @click="geserGuru(i, -1)" />
+							<UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-arrow-down" :disabled="i === guru.length - 1" aria-label="Turunkan" @click="geserGuru(i, 1)" />
+							<UButton size="xs" color="error" variant="ghost" icon="i-lucide-trash-2" aria-label="Hapus" @click="guru.splice(i, 1)" />
+						</div>
+					</div>
+				</div>
+				<UButton class="mt-3" size="sm" color="neutral" variant="outline" icon="i-lucide-plus" @click="guru.push(guruKosong())">
+					Tambah guru
+				</UButton>
+			</UCard>
+
+			<UCard>
+				<template #header>
 					<p class="font-medium">
 						Berita Acara
 					</p>
@@ -137,6 +171,24 @@
 	const form = ref<Pengaturan | null>(null);
 	const saving = ref(false);
 	const error = ref("");
+	const guru = ref<Guru[]>([]);
+
+	const geserGuru = (i: number, arah: -1 | 1) => {
+		const [g] = guru.value.splice(i, 1);
+		if (g) guru.value.splice(i + arah, 0, g);
+	};
+	/** Tambahkan kepala sekolah dan bendahara ke daftar guru bila belum ada. */
+	const guruDariPejabat = () => {
+		const p = form.value?.pejabat;
+		if (!p) return;
+		const ada = new Set(guru.value.map((g) => g.nama.trim().toLowerCase()));
+		const calon = [
+			{ nama: p.kepalaSekolah, nip: p.nipKepalaSekolah, tugas: "Kepala Sekolah" },
+			{ nama: p.bendahara, nip: p.nipBendahara, tugas: "Bendahara BOSP" }
+		].filter((c) => c.nama.trim() && !ada.has(c.nama.trim().toLowerCase()));
+		// Kepala sekolah dan bendahara ditaruh di urutan teratas.
+		guru.value.unshift(...calon.map((c) => ({ ...guruKosong(), ...c })));
+	};
 
 	const pejabatFields: { key: PejabatKey, label: string, hint: string }[] = [
 		{ key: "kepalaSekolah", label: "Kepala Sekolah", hint: "Nama kepala sekolah" },
@@ -205,6 +257,7 @@
 			view.value = await api.pengaturanGet(year.value);
 			form.value = structuredClone(toRaw(view.value.efektif));
 			if (!form.value.cetak.kertas) form.value.cetak.kertas = "A4";
+			guru.value = (await api.settingsGet<Guru[]>(SETTING_GURU)) ?? [];
 		} catch (err) {
 			error.value = errorMessage(err);
 		}
@@ -244,6 +297,7 @@
 		saving.value = true;
 		try {
 			await api.pengaturanSet(tanpaBawaan(form.value));
+			await api.settingsSet(SETTING_GURU, toRaw(guru.value).filter((g) => g.nama.trim()).map((g) => ({ ...g, nama: g.nama.trim() })));
 			toast.add({ title: "Pengaturan tersimpan", color: "success" });
 			await load();
 		} catch (err) {

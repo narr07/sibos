@@ -53,6 +53,13 @@ export const menuGroups: MenuGroup[] = [
 		]
 	},
 	{
+		title: "Generator",
+		pages: [
+			{ label: "Konsumsi Rapat", icon: "i-lucide-users-round", to: "/generator/rapat", phase: 6, description: "Surat Undangan, Daftar Hadir, Berita Acara, dan Notulen rapat dari belanja konsumsi di BKU." },
+			{ label: "SPPD / Transport", icon: "i-lucide-car", to: "/generator/sppd", phase: 6, description: "Surat Tugas, SPD, Kuitansi, Rincian Biaya, Pengeluaran Riil, dan Laporan dari belanja transport di BKU." }
+		]
+	},
+	{
 		title: "Lainnya",
 		pages: [
 			{ label: "Backup & Restore", icon: "i-lucide-database-backup", to: "/lainnya/backup", phase: 5, description: "Backup data SIBOS, restore, salin arkas.db, export semua laporan." },
