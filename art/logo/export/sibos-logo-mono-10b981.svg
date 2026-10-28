@@ -1,0 +1,17 @@
+<svg fill="#10b981" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>SIBOS</title>
+  <defs>
+    <linearGradient id="gradA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+  </defs>
+  <!-- Background Shield Rounded Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#gradA)" />
+  
+  <!-- Modern Clean Geometric 'S' ribbon form with inner fold -->
+  <path d="M168 76 C168 60 152 48 128 48 L96 48 C72 48 56 64 56 88 C56 112 76 124 104 128 L148 134 C176 138 196 150 196 174 C196 198 176 214 148 214 L100 214 C74 214 58 198 58 180" 
+        fill="none" stroke="#10b981" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Checkmark / Growth spark notch inside upper bowl -->
+  <circle cx="140" cy="88" r="10" fill="#10b981" />
+</svg>
