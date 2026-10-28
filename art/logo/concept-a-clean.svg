@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <!-- Background Shield Rounded Squircle Gradient -->
+    <linearGradient id="gradBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <filter id="drop" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#022c22" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <!-- Background Tile -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#gradBg)" />
+  
+  <g filter="url(#drop)">
+    <!-- S ribbon body -->
+    <path d="M168 76 C168 58 152 46 128 46 L96 46 C72 46 56 62 56 86 C56 110 74 122 102 126 L148 132 C176 136 196 148 196 172 C196 196 176 212 148 212 L98 212 C72 212 56 196 56 178" 
+          fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" />
+          
+    <!-- Growth spark / verify dot -->
+    <circle cx="140" cy="86" r="12" fill="#6EE7B7" />
+  </g>
+</svg>
