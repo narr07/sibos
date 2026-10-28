@@ -136,6 +136,90 @@ export interface PengaturanView {
 	efektif: Pengaturan
 }
 
+export interface SiplahToko {
+	id: number
+	nama: string
+	slug: string | null
+	url: string
+	tipe: string | null
+	slogan: string | null
+	alamat: string | null
+	provinsi: string | null
+	kabupaten: string | null
+	kecamatan: string | null
+	kodepos: string | null
+	gambar: string | null
+	totalProduk: number
+	terakhirSync: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export interface SiplahProduk {
+	id: number
+	tokoId: number
+	nama: string
+	harga: number
+	stok: number
+	terjual: number
+	gambar: string | null
+	kenaPajak: boolean
+}
+
+export interface SiplahMatchCandidate {
+	produk: SiplahProduk
+	score: number
+	matchedWords: string[]
+}
+
+export interface SiplahMatchItem {
+	sourceId: string
+	namaRkas: string
+	satuan: string | null
+	volume: number
+	hargaRkas: number
+	totalRkas: number
+	realisasiRkas: number
+	statusBelanja: "belum" | "sebagian" | "lunas"
+	kodeRekening: string | null
+	sumberDana: string | null
+	matchedProduct: SiplahProduk | null
+	score: number
+	status: "sesuai" | "lebih_murah" | "lebih_mahal" | "tidak_cocok"
+	selisih: number
+	persenSelisih: number
+	candidates: SiplahMatchCandidate[]
+}
+
+export interface SiplahMatchSummary {
+	totalItems: number
+	totalCocok: number
+	totalTidakCocok: number
+	totalSesuai: number
+	totalLebihMurah: number
+	totalLebihMahal: number
+	totalAnggaranRkas: number
+	totalEstimasiToko: number
+	totalHemat: number
+}
+
+export interface SiplahMatchReport {
+	toko: SiplahToko
+	sourceMode: "rkas" | "standar_harga"
+	year: number
+	month?: number | null
+	fundId?: number | null
+	onlyUnspent?: boolean
+	summary: SiplahMatchSummary
+	items: SiplahMatchItem[]
+}
+
+export interface SiplahSyncResult {
+	tokoId: number
+	total: number
+	terakhirSync: string
+}
+
 export interface ApiError {
 	code: string
 	message: string
@@ -247,6 +331,32 @@ export const api = {
 	rkasDraftRename: (id: string, nama: string) => call<void>("rkas_draft_rename", { id, nama }),
 	rkasDraftDelete: (id: string) => call<void>("rkas_draft_delete", { id }),
 	rkasDraftExportXlsx: (id: string, path: string) => call<string>("rkas_draft_export_xlsx", { id, path }),
+
+	// SIPLah
+	siplahInspectUrl: (url: string) => call<SiplahToko>("siplah_inspect_url", { url }),
+	siplahTokoList: () => call<SiplahToko[]>("siplah_toko_list"),
+	siplahTokoSave: (toko: SiplahToko) => call<void>("siplah_toko_save", { toko }),
+	siplahTokoDelete: (id: number) => call<void>("siplah_toko_delete", { id }),
+	siplahProdukList: (tokoId: number, keyword?: string) =>
+		call<SiplahProduk[]>("siplah_produk_list", { tokoId, keyword: keyword ?? null }),
+	siplahSyncProducts: (tokoId: number) => call<SiplahSyncResult>("siplah_sync_products", { tokoId }),
+	siplahMatchPrices: (
+		year: number,
+		tokoId: number,
+		sourceMode: "rkas" | "standar_harga",
+		month?: number | null,
+		fund?: number | null,
+		onlyUnspent?: boolean | null
+	) => call<SiplahMatchReport>("siplah_match_prices", { year, tokoId, sourceMode, month: month ?? null, fund: fund ?? null, onlyUnspent: onlyUnspent ?? null }),
+	siplahExportMatchXlsx: (
+		year: number,
+		tokoId: number,
+		sourceMode: "rkas" | "standar_harga",
+		path: string,
+		month?: number | null,
+		fund?: number | null,
+		onlyUnspent?: boolean | null
+	) => call<string>("siplah_export_match_xlsx", { year, tokoId, sourceMode, month: month ?? null, fund: fund ?? null, onlyUnspent: onlyUnspent ?? null, path }),
 
 	// Export & backup
 	exportKertasKerjaXlsx: (year: number, fund: number | null, search: string, start: number, end: number, judul: string, triwulan: boolean, lembar: boolean, path: string) =>

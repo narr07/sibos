@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bgB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded Container -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#bgB)" />
+  
+  <!-- Left Ledger Wing (Left page of book + bottom of S) -->
+  <path d="M60 76 C60 62 72 52 86 52 C108 52 120 68 128 82 C120 98 106 108 86 108 L76 108 C67 108 60 115 60 124 L60 170 C60 186 74 200 92 200 L128 200 L128 160 C128 144 140 132 156 132 L172 132 C186 132 196 120 196 106 C196 90 184 76 168 76 L138 76" 
+        fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Verification shield tick in center -->
+  <path d="M112 142 L126 156 L164 116" fill="none" stroke="#34D399" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

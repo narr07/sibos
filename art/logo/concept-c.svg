@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="gradEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#gradEmerald)" />
+  
+  <!-- Outer Ledger Book silhouette -->
+  <rect x="54" y="50" width="148" height="156" rx="24" fill="#064E3B" fill-opacity="0.4" stroke="#A7F3D0" stroke-width="8" />
+  
+  <!-- Center S-Monogram precision vector -->
+  <path d="M154 84 C154 74 144 66 130 66 L112 66 C98 66 88 75 88 88 C88 102 98 110 114 114 L138 120 C156 124 168 134 168 150 C168 165 155 176 138 176 L114 176 C96 176 84 165 84 152" 
+        fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Subtle checkmark pill on bottom right corner -->
+  <circle cx="176" cy="176" r="22" fill="#10B981" stroke="#FFFFFF" stroke-width="6" />
+  <path d="M168 176 L174 182 L185 170" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -1,0 +1,209 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="840" viewBox="0 0 1600 840"><rect width="1600" height="840" fill="#f7f7f4"/><text x="60" y="78" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="40" font-weight="700" fill="#161616">SIBOS - Konsep Logo dan App Icon</text><text x="60" y="116" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#6b6b6b">Concepts for review — pick a direction (or tell me what you like in each).</text><rect x="60" y="150" width="474.667" height="630" rx="18" fill="#fff" stroke="#161616" stroke-width="2"/><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="90" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="c0-gradA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Shield Rounded Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#c0-gradA)" />
+  
+  <!-- Modern Clean Geometric 'S' ribbon form with inner fold -->
+  <path d="M168 76 C168 60 152 48 128 48 L96 48 C72 48 56 64 56 88 C56 112 76 124 104 128 L148 134 C176 138 196 150 196 174 C196 198 176 214 148 214 L100 214 C74 214 58 198 58 180" 
+        fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Checkmark / Growth spark notch inside upper bowl -->
+  <circle cx="140" cy="88" r="10" fill="#A7F3D0" />
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="90" y="516" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s064-gradA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Shield Rounded Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#s064-gradA)" />
+  
+  <!-- Modern Clean Geometric 'S' ribbon form with inner fold -->
+  <path d="M168 76 C168 60 152 48 128 48 L96 48 C72 48 56 64 56 88 C56 112 76 124 104 128 L148 134 C176 138 196 150 196 174 C196 198 176 214 148 214 L100 214 C74 214 58 198 58 180" 
+        fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Checkmark / Growth spark notch inside upper bowl -->
+  <circle cx="140" cy="88" r="10" fill="#A7F3D0" />
+</svg></g><text x="122" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="180" y="548" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s032-gradA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Shield Rounded Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#s032-gradA)" />
+  
+  <!-- Modern Clean Geometric 'S' ribbon form with inner fold -->
+  <path d="M168 76 C168 60 152 48 128 48 L96 48 C72 48 56 64 56 88 C56 112 76 124 104 128 L148 134 C176 138 196 150 196 174 C196 198 176 214 148 214 L100 214 C74 214 58 198 58 180" 
+        fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Checkmark / Growth spark notch inside upper bowl -->
+  <circle cx="140" cy="88" r="10" fill="#A7F3D0" />
+</svg></g><text x="196" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="238" y="564" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s016-gradA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Shield Rounded Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#s016-gradA)" />
+  
+  <!-- Modern Clean Geometric 'S' ribbon form with inner fold -->
+  <path d="M168 76 C168 60 152 48 128 48 L96 48 C72 48 56 64 56 88 C56 112 76 124 104 128 L148 134 C176 138 196 150 196 174 C196 198 176 214 148 214 L100 214 C74 214 58 198 58 180" 
+        fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Checkmark / Growth spark notch inside upper bowl -->
+  <circle cx="140" cy="88" r="10" fill="#A7F3D0" />
+</svg></g><text x="246" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="90.0" y="636" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">A · S-Ribbon</text><text x="90.0" y="664" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#161616" letter-spacing="1.5">RECOMMENDED</text><text x="90.0" y="698" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Monogram S pita presisi dengan titik audit</text><text x="90.0" y="724" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">pertumbuhan</text><rect x="562.667" y="150" width="474.667" height="630" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="592.667" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="c1-bgB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded Container -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#c1-bgB)" />
+  
+  <!-- Left Ledger Wing (Left page of book + bottom of S) -->
+  <path d="M60 76 C60 62 72 52 86 52 C108 52 120 68 128 82 C120 98 106 108 86 108 L76 108 C67 108 60 115 60 124 L60 170 C60 186 74 200 92 200 L128 200 L128 160 C128 144 140 132 156 132 L172 132 C186 132 196 120 196 106 C196 90 184 76 168 76 L138 76" 
+        fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Verification shield tick in center -->
+  <path d="M112 142 L126 156 L164 116" fill="none" stroke="#34D399" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="592.667" y="516" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s164-bgB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded Container -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#s164-bgB)" />
+  
+  <!-- Left Ledger Wing (Left page of book + bottom of S) -->
+  <path d="M60 76 C60 62 72 52 86 52 C108 52 120 68 128 82 C120 98 106 108 86 108 L76 108 C67 108 60 115 60 124 L60 170 C60 186 74 200 92 200 L128 200 L128 160 C128 144 140 132 156 132 L172 132 C186 132 196 120 196 106 C196 90 184 76 168 76 L138 76" 
+        fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Verification shield tick in center -->
+  <path d="M112 142 L126 156 L164 116" fill="none" stroke="#34D399" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><text x="624.667" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="682.667" y="548" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s132-bgB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded Container -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#s132-bgB)" />
+  
+  <!-- Left Ledger Wing (Left page of book + bottom of S) -->
+  <path d="M60 76 C60 62 72 52 86 52 C108 52 120 68 128 82 C120 98 106 108 86 108 L76 108 C67 108 60 115 60 124 L60 170 C60 186 74 200 92 200 L128 200 L128 160 C128 144 140 132 156 132 L172 132 C186 132 196 120 196 106 C196 90 184 76 168 76 L138 76" 
+        fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Verification shield tick in center -->
+  <path d="M112 142 L126 156 L164 116" fill="none" stroke="#34D399" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><text x="698.667" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="740.667" y="564" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s116-bgB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded Container -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#s116-bgB)" />
+  
+  <!-- Left Ledger Wing (Left page of book + bottom of S) -->
+  <path d="M60 76 C60 62 72 52 86 52 C108 52 120 68 128 82 C120 98 106 108 86 108 L76 108 C67 108 60 115 60 124 L60 170 C60 186 74 200 92 200 L128 200 L128 160 C128 144 140 132 156 132 L172 132 C186 132 196 120 196 106 C196 90 184 76 168 76 L138 76" 
+        fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Verification shield tick in center -->
+  <path d="M112 142 L126 156 L164 116" fill="none" stroke="#34D399" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><text x="748.667" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="592.6666666666667" y="636" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">B · Ledger Shield</text><text x="592.6666666666667" y="670" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Buku kas berpadu huruf S dengan tanda</text><text x="592.6666666666667" y="696" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">verifikasi</text><rect x="1065.33" y="150" width="474.667" height="630" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1095.33" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="c2-gradEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#c2-gradEmerald)" />
+  
+  <!-- Outer Ledger Book silhouette -->
+  <rect x="54" y="50" width="148" height="156" rx="24" fill="#064E3B" fill-opacity="0.4" stroke="#A7F3D0" stroke-width="8" />
+  
+  <!-- Center S-Monogram precision vector -->
+  <path d="M154 84 C154 74 144 66 130 66 L112 66 C98 66 88 75 88 88 C88 102 98 110 114 114 L138 120 C156 124 168 134 168 150 C168 165 155 176 138 176 L114 176 C96 176 84 165 84 152" 
+        fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Subtle checkmark pill on bottom right corner -->
+  <circle cx="176" cy="176" r="22" fill="#10B981" stroke="#FFFFFF" stroke-width="6" />
+  <path d="M168 176 L174 182 L185 170" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1095.33" y="516" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s264-gradEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#s264-gradEmerald)" />
+  
+  <!-- Outer Ledger Book silhouette -->
+  <rect x="54" y="50" width="148" height="156" rx="24" fill="#064E3B" fill-opacity="0.4" stroke="#A7F3D0" stroke-width="8" />
+  
+  <!-- Center S-Monogram precision vector -->
+  <path d="M154 84 C154 74 144 66 130 66 L112 66 C98 66 88 75 88 88 C88 102 98 110 114 114 L138 120 C156 124 168 134 168 150 C168 165 155 176 138 176 L114 176 C96 176 84 165 84 152" 
+        fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Subtle checkmark pill on bottom right corner -->
+  <circle cx="176" cy="176" r="22" fill="#10B981" stroke="#FFFFFF" stroke-width="6" />
+  <path d="M168 176 L174 182 L185 170" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><text x="1127.33" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1185.33" y="548" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s232-gradEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#s232-gradEmerald)" />
+  
+  <!-- Outer Ledger Book silhouette -->
+  <rect x="54" y="50" width="148" height="156" rx="24" fill="#064E3B" fill-opacity="0.4" stroke="#A7F3D0" stroke-width="8" />
+  
+  <!-- Center S-Monogram precision vector -->
+  <path d="M154 84 C154 74 144 66 130 66 L112 66 C98 66 88 75 88 88 C88 102 98 110 114 114 L138 120 C156 124 168 134 168 150 C168 165 155 176 138 176 L114 176 C96 176 84 165 84 152" 
+        fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Subtle checkmark pill on bottom right corner -->
+  <circle cx="176" cy="176" r="22" fill="#10B981" stroke="#FFFFFF" stroke-width="6" />
+  <path d="M168 176 L174 182 L185 170" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><text x="1201.33" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1243.33" y="564" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="s216-gradEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#s216-gradEmerald)" />
+  
+  <!-- Outer Ledger Book silhouette -->
+  <rect x="54" y="50" width="148" height="156" rx="24" fill="#064E3B" fill-opacity="0.4" stroke="#A7F3D0" stroke-width="8" />
+  
+  <!-- Center S-Monogram precision vector -->
+  <path d="M154 84 C154 74 144 66 130 66 L112 66 C98 66 88 75 88 88 C88 102 98 110 114 114 L138 120 C156 124 168 134 168 150 C168 165 155 176 138 176 L114 176 C96 176 84 165 84 152" 
+        fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+        
+  <!-- Subtle checkmark pill on bottom right corner -->
+  <circle cx="176" cy="176" r="22" fill="#10B981" stroke="#FFFFFF" stroke-width="6" />
+  <path d="M168 176 L174 182 L185 170" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</svg></g><text x="1251.33" y="600" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="1095.3333333333335" y="636" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">C · BOSP Emblem</text><text x="1095.3333333333335" y="670" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Emblem buku kas dengan monogram S dan</text><text x="1095.3333333333335" y="696" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">lencana approval</text></svg>

@@ -29,6 +29,8 @@ export const menuGroups: MenuGroup[] = [
 			{ label: "Kertas Kerja (RKAS)", icon: "i-lucide-file-spreadsheet", to: "/penganggaran/kertas-kerja", phase: 4, description: "RKAS per program, kegiatan, rekening, dan item dengan distribusi bulanan." },
 			{ label: "Penganggaran RKAS", icon: "i-lucide-pencil-ruler", to: "/penganggaran/rkas", phase: 5, description: "Penyusun draft RKAS lokal: versi Awal, Perubahan, Pergeseran." },
 			{ label: "Cari Barang & Rekening", icon: "i-lucide-search", to: "/penganggaran/standar-harga", phase: 5, description: "Cari katalog standar harga ARKAS dan salin kode rekening." },
+			{ label: "Belanja", icon: "i-lucide-shopping-cart", to: "/penganggaran/belanja", phase: 5, description: "Rencana belanja RKAS per bulan dan perbandingan kecocokan produk toko SIPLah." },
+			{ label: "Toko SIPLah", icon: "i-lucide-store", to: "/penganggaran/siplah", phase: 5, description: "Kelola toko dan katalog produk SIPLah." },
 			{ label: "Realisasi Belanja", icon: "i-lucide-chart-column", to: "/penganggaran/realisasi", phase: 4, description: "Rencana RKAS dibandingkan realisasi BKU per item dan per bulan." }
 		]
 	},
@@ -56,7 +58,8 @@ export const menuGroups: MenuGroup[] = [
 		title: "Generator",
 		pages: [
 			{ label: "Konsumsi Rapat", icon: "i-lucide-users-round", to: "/generator/rapat", phase: 6, description: "Surat Undangan, Daftar Hadir, Berita Acara, dan Notulen rapat dari belanja konsumsi di BKU." },
-			{ label: "SPPD / Transport", icon: "i-lucide-car", to: "/generator/sppd", phase: 6, description: "Surat Tugas, SPD, Kuitansi, Rincian Biaya, Pengeluaran Riil, dan Laporan dari belanja transport di BKU." }
+			{ label: "SPPD / Transport", icon: "i-lucide-car", to: "/generator/sppd", phase: 6, description: "Surat Tugas, SPD, Kuitansi, Rincian Biaya, Pengeluaran Riil, dan Laporan dari belanja transport di BKU." },
+			{ label: "Standing Instruction (SI)", icon: "i-lucide-landmark", to: "/generator/si", phase: 6, description: "Surat pemindahbukuan / transfer bank untuk belanja non-SIPLah (mamin, fotokopi, penyedia lokal)." }
 		]
 	},
 	{

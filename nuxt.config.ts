@@ -68,6 +68,7 @@ export default defineNuxtConfig({
 				"lucide:search",
 				"lucide:settings",
 				"lucide:stamp",
+				"lucide:shopping-cart",
 				"lucide:store",
 				"lucide:table",
 				"lucide:users-round",

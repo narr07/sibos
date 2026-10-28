@@ -113,6 +113,14 @@ pub fn run() {
 			commands::rkas_draft::rkas_draft_rename,
 			commands::rkas_draft::rkas_draft_delete,
 			commands::rkas_draft::rkas_draft_export_xlsx,
+			commands::siplah::siplah_inspect_url,
+			commands::siplah::siplah_toko_list,
+			commands::siplah::siplah_toko_save,
+			commands::siplah::siplah_toko_delete,
+			commands::siplah::siplah_produk_list,
+			commands::siplah::siplah_sync_products,
+			commands::siplah::siplah_match_prices,
+			commands::siplah::siplah_export_match_xlsx,
 		])
 		.run(tauri::generate_context!())
 		.expect("gagal menjalankan aplikasi");

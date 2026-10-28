@@ -9,6 +9,22 @@ export interface VersiRilis {
 
 export const CHANGELOG: VersiRilis[] = [
 	{
+		versi: "0.3.0",
+		tanggal: "2026-10-29",
+		judul: "Katalog Toko SIPLah & Generator Standing Instruction (SI)",
+		ringkasan: "Fitur belanja komparasi katalog toko SIPLah otomatis dan Generator Standing Instruction (SI) Bank untuk pemindahbukuan rekening.",
+		perubahan: [
+			{ jenis: "baru", teks: "Katalog Toko SIPLah: Simpan toko mitra SIPLah (Toko Ladang) hanya dengan link toko, otomatis sinkronisasi katalog dan foto produk" },
+			{ jenis: "baru", teks: "Komparasi Belanja SIPLah: Halaman Belanja dengan tampilan kartu komparasi berdampingan (RKAS vs Produk Toko SIPLah) untuk melihat estimasi dan selisih harga" },
+			{ jenis: "baru", teks: "Pencocokan Harga Cerdas: Algoritma tokenisasi pencocokan nama produk fleksibel dengan toleransi perbedaan penamaan kata kunci" },
+			{ jenis: "baru", teks: "Filter Belanja Realisasi: Menampilkan hanya barang yang belum dibelanjakan berdasarkan realisasi transaksi BKU ARKAS" },
+			{ jenis: "baru", teks: "Generator Standing Instruction (SI): Pembuat surat instruksi pemindahbukuan / transfer bank resmi ke Bank Kas Daerah / BJB" },
+			{ jenis: "baru", teks: "Pilihan Belanja dari RKAS Bulanan: Ambil rencana belanja bulanan langsung dari kertas kerja ARKAS dengan filter item yang belum dibelanjakan" },
+			{ jenis: "baru", teks: "Dukungan Rekanan Non-SIPLah: Input manual rekening penyedia mamin, fotokopi, atau rekanan lokal lainnya beserta potong pajak" },
+			{ jenis: "perbaikan", teks: "Pemuatan gambar produk toko SIPLah Toko Ladang menggunakan host Object Storage (OSS) resmi" }
+		]
+	},
+	{
 		versi: "0.2.0",
 		tanggal: "2026-10-14",
 		judul: "Generator dokumen SPJ",

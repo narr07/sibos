@@ -13,6 +13,7 @@ pub mod dokumen;
 pub mod laporan;
 pub mod nota;
 pub mod rkas_draft;
+pub mod siplah;
 
 /// Migrasi berurutan. Indeks + 1 = nilai `user_version` setelah migrasi dijalankan.
 /// Jangan ubah migrasi yang sudah dirilis; tambahkan migrasi baru di akhir.
@@ -114,6 +115,8 @@ const MIGRATIONS: &[&str] = &[
 	"ALTER TABLE print_override ADD COLUMN no_nota TEXT;",
 	// 7: template dokumen & profil penyedia
 	dokumen::MIGRATION,
+	// 8: toko & produk siplah
+	siplah::MIGRATION,
 ];
 
 pub struct AppDb {
