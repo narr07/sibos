@@ -1,5 +1,5 @@
 /**
- * Build installer SIBOS (.exe NSIS + .msi) yang ditandatangani untuk pembaruan otomatis,
+ * Build installer Lajur (.exe NSIS + .msi; nama file masih SIBOS_ mengikuti productName) yang ditandatangani untuk pembaruan otomatis,
  * lalu (opsional) terbitkan ke GitHub Releases beserta latest.json.
  *
  *   bun run rilis              -> build + siapkan latest.json
@@ -27,7 +27,7 @@ if (!existsSync(kunci)) {
 	process.exit(1);
 }
 
-console.log(`Build SIBOS ${versi} ...`);
+console.log(`Build Lajur ${versi} ...`);
 await $`bun run tauri build`.cwd(root).env({
 	...process.env,
 	TAURI_SIGNING_PRIVATE_KEY: readFileSync(kunci, "utf8"),
@@ -45,7 +45,7 @@ for (const f of [exe, `${exe}.sig`, msi, `${msi}.sig`]) {
 }
 
 const catatanFile = join(root, "CATATAN_RILIS.md");
-const catatan = existsSync(catatanFile) ? readFileSync(catatanFile, "utf8").trim() : `SIBOS ${versi}`;
+const catatan = existsSync(catatanFile) ? readFileSync(catatanFile, "utf8").trim() : `Lajur ${versi}`;
 
 // Pembaruan otomatis memakai installer NSIS (mode passive, terpasang di Program Files).
 const latest = {
@@ -67,7 +67,7 @@ for (const f of [exe, msi, latestFile]) console.log(`  ${f}`);
 
 if (terbitkan) {
 	console.log(`\nMenerbitkan ${tag} ke GitHub Releases ...`);
-	await $`gh release create ${tag} ${exe} ${`${exe}.sig`} ${msi} ${`${msi}.sig`} ${latestFile} --repo ${REPO} --title ${`SIBOS ${versi}`} --notes ${catatan}`.cwd(root);
+	await $`gh release create ${tag} ${exe} ${`${exe}.sig`} ${msi} ${`${msi}.sig`} ${latestFile} --repo ${REPO} --title ${`Lajur ${versi}`} --notes ${catatan}`.cwd(root);
 	console.log("Selesai. Aplikasi yang sudah terpasang akan menerima notifikasi pembaruan.");
 } else {
 	console.log("\nBelum diterbitkan. Jalankan `bun run rilis --terbitkan` untuk membuat GitHub Release.");

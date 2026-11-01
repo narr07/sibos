@@ -1,14 +1,23 @@
-### SIBOS 0.3.0 - Katalog Toko SIPLah & Generator Standing Instruction (SI)
+### Lajur 0.4.0 - Nama baru & banding harga draft RKAS
+
+SIBOS berganti nama menjadi Lajur. Draft RKAS kini bisa dibandingkan dengan harga toko SIPLah, dan aplikasi lebih responsif serta aman saat backup dan restore.
 
 #### Fitur Baru:
-- **Katalog Toko SIPLah**: Simpan toko mitra SIPLah (Toko Ladang) hanya dengan memasukkan tautan toko; sinkronisasi katalog dan foto produk otomatis.
-- **Komparasi Belanja SIPLah**: Tampilan kartu komparasi berdampingan (Rencana Belanja RKAS vs Produk Toko SIPLah) untuk melihat estimasi dan selisih harga secara instan.
-- **Pencocokan Harga Cerdas**: Algoritma tokenisasi cerdas dengan toleransi kesamaan 1 kata kunci untuk memetakan nama barang RKAS dengan produk toko.
-- **Filter Belanja Realisasi**: Opsi untuk hanya menampilkan barang yang belum dibelanjakan berdasarkan realisasi belanja BKU ARKAS.
-- **Generator Standing Instruction (SI)**: Pembuat surat instruksi pemindahbukuan / transfer bank resmi ke Bank Kas Daerah / BJB.
-- **Pilihan Belanja dari RKAS Bulanan**: Ambil rencana belanja bulanan langsung dari kertas kerja ARKAS dengan filter item yang belum dibelanjakan.
-- **Dukungan Rekanan Non-SIPLah**: Input manual data rekening penyedia mamin, fotokopi, atau rekanan lokal lainnya beserta potong pajak.
+- Bandingkan harga draft RKAS dengan toko SIPLah (Toko Ladang): perkiraan biaya, selisih per item, ganti produk pasangan, dan tombol Pakai harga untuk memperbarui harga satuan draft.
+- Sinkronisasi katalog SIPLah menampilkan progres per halaman dan bisa dibatalkan; katalog tidak berubah bila dibatalkan.
+
+#### Perubahan:
+- SIBOS kini bernama Lajur, dengan logo baru. Data, pengaturan, dan koneksi ARKAS tetap sama; tidak perlu mengatur ulang apa pun.
+- Halaman Penganggaran RKAS lebih lega: daftar draft pindah ke pemilih di atas sehingga tabel memakai lebar penuh.
+- Tampilan bersudut siku di seluruh aplikasi.
 
 #### Perbaikan:
-- Perbaikan pemuatan gambar produk toko SIPLah Toko Ladang menggunakan host Object Storage (OSS) resmi.
+- Aplikasi tidak lagi membeku saat memuat buku kas, export Excel, atau backup; semua proses berat berjalan di latar belakang.
+- Salin database ARKAS kini menyertakan transaksi terakhir yang belum tersimpan permanen oleh ARKAS (file -wal).
+- Restore backup aman bila gagal di tengah jalan: data lama dikembalikan otomatis.
+- Angka Hemat di SIPLah dan Belanja hanya membandingkan barang yang ditemukan di toko, tidak lagi terlalu besar.
+- Total terpilih di Generator SI sama dengan nominal yang dimasukkan ke rincian.
+- Pesan gagal SIPLah lebih jelas: toko tidak ditemukan, tidak ada internet, atau server tidak menjawab.
+- Muat ulang koneksi ARKAS tidak lagi menghapus salinan sementara yang sedang dipakai.
 
+Pengguna SIBOS versi lama akan menerima pembaruan ini seperti biasa. Nama installer dan shortcut masih SIBOS untuk sementara agar pembaruan berjalan mulus.

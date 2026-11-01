@@ -1,4 +1,4 @@
-/** Riwayat versi SIBOS (terbaru di atas). Tampil di halaman Changelog. */
+/** Riwayat versi Lajur, dulu SIBOS (terbaru di atas). Tampil di halaman Changelog. */
 export interface VersiRilis {
 	versi: string
 	tanggal: string
@@ -8,6 +8,26 @@ export interface VersiRilis {
 }
 
 export const CHANGELOG: VersiRilis[] = [
+	{
+		versi: "0.4.0",
+		tanggal: "2026-11-02",
+		judul: "Lajur: nama baru, banding harga draft RKAS",
+		ringkasan: "SIBOS berganti nama menjadi Lajur. Draft RKAS kini bisa dibandingkan dengan harga toko SIPLah, dan aplikasi lebih responsif serta aman saat backup dan restore.",
+		perubahan: [
+			{ jenis: "ubah", teks: "SIBOS kini bernama Lajur, dengan logo baru. Data, pengaturan, dan koneksi ARKAS tetap sama; tidak perlu mengatur ulang apa pun" },
+			{ jenis: "baru", teks: "Bandingkan harga draft RKAS dengan toko SIPLah (Toko Ladang): perkiraan biaya, selisih per item, ganti produk pasangan, dan tombol Pakai harga untuk memperbarui harga satuan draft" },
+			{ jenis: "baru", teks: "Sinkronisasi katalog SIPLah menampilkan progres per halaman dan bisa dibatalkan; katalog tidak berubah bila dibatalkan" },
+			{ jenis: "ubah", teks: "Halaman Penganggaran RKAS lebih lega: daftar draft pindah ke pemilih di atas sehingga tabel memakai lebar penuh" },
+			{ jenis: "ubah", teks: "Tampilan bersudut siku di seluruh aplikasi" },
+			{ jenis: "perbaikan", teks: "Aplikasi tidak lagi membeku saat memuat buku kas, export Excel, atau backup; semua proses berat berjalan di latar belakang" },
+			{ jenis: "perbaikan", teks: "Salin database ARKAS kini menyertakan transaksi terakhir yang belum tersimpan permanen oleh ARKAS (file -wal)" },
+			{ jenis: "perbaikan", teks: "Restore backup aman bila gagal di tengah jalan: data lama dikembalikan otomatis" },
+			{ jenis: "perbaikan", teks: "Angka Hemat di SIPLah dan Belanja hanya membandingkan barang yang ditemukan di toko, tidak lagi terlalu besar" },
+			{ jenis: "perbaikan", teks: "Total terpilih di Generator SI sama dengan nominal yang dimasukkan ke rincian" },
+			{ jenis: "perbaikan", teks: "Pesan gagal SIPLah lebih jelas: toko tidak ditemukan, tidak ada internet, atau server tidak menjawab" },
+			{ jenis: "perbaikan", teks: "Muat ulang koneksi ARKAS tidak lagi menghapus salinan sementara yang sedang dipakai" }
+		]
+	},
 	{
 		versi: "0.3.0",
 		tanggal: "2026-10-29",
