@@ -6,7 +6,7 @@
 				Hubungkan ARKAS
 			</h2>
 			<p class="text-muted">
-				SIBOS membaca data dari database ARKAS di komputer ini. Pastikan ARKAS sudah terpasang dan data sekolah sudah diunduh.
+				Lajur membaca data dari database ARKAS di komputer ini. Pastikan ARKAS sudah terpasang dan data sekolah sudah diunduh.
 			</p>
 			<UButton to="/setup" icon="i-lucide-plug">
 				Hubungkan sekarang
@@ -159,8 +159,8 @@
 					<div class="space-y-2.5">
 						<div v-for="k in d.summary.belanjaKelompok" :key="k.kode" class="grid grid-cols-[14rem_1fr_9rem] items-center gap-3 text-sm">
 							<span class="truncate">{{ k.nama }}</span>
-							<div class="h-2.5 rounded-full bg-elevated overflow-hidden">
-								<div class="h-full rounded-full bg-primary" :style="{ width: `${share(k.total)}%` }" />
+							<div class="h-2.5 bg-elevated overflow-hidden">
+								<div class="h-full bg-primary" :style="{ width: `${share(k.total)}%` }" />
 							</div>
 							<span class="text-right tabular">{{ rupiah(k.total) }} <span class="text-muted text-xs">{{ share(k.total).toLocaleString("id-ID", { maximumFractionDigits: 1 }) }}%</span></span>
 						</div>

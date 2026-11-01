@@ -4,7 +4,7 @@
 			<!-- Pengantar tetap sempit; daftar versi memakai lebar penuh agar garis & tanggal di kolom kiri -->
 			<div class="w-full max-w-2xl mx-auto space-y-4">
 				<div class="flex flex-wrap items-center gap-2 text-muted">
-					<span>Riwayat versi dan perubahan SIBOS. Versi terpasang:</span>
+					<span>Riwayat versi dan perubahan Lajur. Versi terpasang:</span>
 					<UBadge color="neutral" variant="subtle">
 						{{ versiTerpasang ? `v${versiTerpasang}` : "tidak diketahui" }}
 					</UBadge>
@@ -16,7 +16,7 @@
 					variant="subtle"
 					icon="i-lucide-sparkles"
 					:title="`Versi baru tersedia: v${terbaru?.versi}`"
-					description="Perbarui SIBOS untuk mendapatkan fitur dan perbaikan terbaru."
+					description="Perbarui Lajur untuk mendapatkan fitur dan perbaikan terbaru."
 					:actions="[{ label: 'Periksa pembaruan', icon: 'i-lucide-refresh-cw', onClick: () => cek() }]"
 				/>
 			</div>

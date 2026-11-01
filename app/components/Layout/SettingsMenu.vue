@@ -18,7 +18,7 @@
 
 		<template #chip-leading="{ item }">
 			<div class="inline-flex items-center justify-center shrink-0 size-5">
-				<span class="rounded-full ring ring-bg size-2" :style="{ backgroundColor: (item as ChipItem).hex }" />
+				<span class="ring ring-bg size-2" :style="{ backgroundColor: (item as ChipItem).hex }" />
 			</div>
 		</template>
 	</UDropdownMenu>

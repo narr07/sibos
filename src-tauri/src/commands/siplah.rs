@@ -5,15 +5,16 @@
 use std::collections::HashMap;
 use std::os::windows::process::CommandExt;
 use std::path::Path;
+use std::sync::atomic::Ordering;
 
 use rust_xlsxwriter::{Color, Format, FormatBorder, Workbook};
 use serde::{Deserialize, Serialize};
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
 
 use crate::error::{validate_year, AppError, AppResult};
 use crate::repo::app::siplah::{SiplahProduk, SiplahToko};
 use crate::repo::arkas::bku;
-use crate::repo::arkas::rkas::{self, RkasItem, StandarHarga};
+use crate::repo::arkas::rkas::{self, StandarHarga};
 use crate::state::AppState;
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
@@ -98,8 +99,13 @@ pub struct SiplahMatchSummary {
 	pub total_lebih_murah: usize,
 	pub total_lebih_mahal: usize,
 	pub total_anggaran_rkas: i64,
+	/// Pagu item yang punya produk cocok saja (pembanding yang setara untuk `total_estimasi_toko`).
+	pub total_anggaran_cocok: i64,
 	pub total_estimasi_toko: i64,
+	/// `total_anggaran_cocok - total_estimasi_toko`: positif berarti toko lebih murah.
 	pub total_hemat: i64,
+	/// Perkiraan biaya semua item: harga toko untuk yang cocok, pagu/draft untuk yang tidak cocok.
+	pub total_perkiraan: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -144,7 +150,9 @@ fn fetch_json_with_curl(url: &str) -> AppResult<String> {
 	let mut cmd = std::process::Command::new("C:\\Windows\\System32\\curl.exe");
 	cmd.creation_flags(CREATE_NO_WINDOW);
 	cmd.args([
-		"-s",
+		// --fail: status HTTP 4xx/5xx jadi error (exit 22), bukan halaman error yang dikira JSON.
+		"--fail",
+		"-sS",
 		"-L",
 		"--max-time",
 		"30",
@@ -156,10 +164,28 @@ fn fetch_json_with_curl(url: &str) -> AppResult<String> {
 	]);
 	let output = cmd.output().map_err(|e| AppError::Io(std::io::Error::other(format!("gagal menjalankan curl: {e}"))))?;
 	if !output.status.success() {
-		return Err(AppError::InvalidInput(format!("Gagal menghubungi server SIPLah (exit code {:?})", output.status.code())));
+		let detail = String::from_utf8_lossy(&output.stderr).trim().trim_start_matches("curl: ").to_string();
+		return Err(AppError::InvalidInput(curl_error_message(output.status.code(), &detail)));
 	}
 	let body = String::from_utf8_lossy(&output.stdout).to_string();
 	Ok(body)
+}
+
+/// Pesan yang bisa dipahami bendahara untuk kode exit curl yang umum.
+fn curl_error_message(code: Option<i32>, detail: &str) -> String {
+	let pesan = match code {
+		Some(6) => "Server SIPLah tidak ditemukan. Periksa koneksi internet.",
+		Some(7) => "Tidak bisa terhubung ke server SIPLah. Periksa koneksi internet.",
+		Some(22) => "Server SIPLah menolak permintaan (toko tidak ada atau layanan sedang bermasalah).",
+		Some(28) => "Server SIPLah tidak menjawab dalam 30 detik. Coba lagi nanti.",
+		Some(35 | 60) => "Gagal membuat koneksi aman (SSL) ke server SIPLah.",
+		_ => "Gagal menghubungi server SIPLah.",
+	};
+	if detail.is_empty() {
+		pesan.to_string()
+	} else {
+		format!("{pesan} ({detail})")
+	}
 }
 
 fn normalize_image_url(raw: Option<String>) -> Option<String> {
@@ -213,12 +239,12 @@ pub fn siplah_inspect_url(url: String) -> AppResult<SiplahToko> {
 	Ok(toko)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn siplah_toko_list(state: State<'_, AppState>) -> AppResult<Vec<SiplahToko>> {
 	state.app_db().siplah_toko_list()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn siplah_toko_save(state: State<'_, AppState>, toko: SiplahToko) -> AppResult<()> {
 	if toko.nama.trim().is_empty() {
 		return Err(AppError::InvalidInput("Nama toko wajib diisi".into()));
@@ -226,18 +252,37 @@ pub fn siplah_toko_save(state: State<'_, AppState>, toko: SiplahToko) -> AppResu
 	state.app_db().siplah_toko_save(&toko)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn siplah_toko_delete(state: State<'_, AppState>, id: i64) -> AppResult<()> {
 	state.app_db().siplah_toko_delete(id)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn siplah_produk_list(state: State<'_, AppState>, toko_id: i64, keyword: Option<String>) -> AppResult<Vec<SiplahProduk>> {
 	state.app_db().siplah_produk_list(toko_id, keyword.as_deref())
 }
 
+/// Progres sinkronisasi, dikirim ke frontend lewat event `siplah-sync-progress`.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SiplahSyncProgress {
+	pub toko_id: i64,
+	pub halaman: u32,
+	pub produk: usize,
+}
+
+/// Minta sinkronisasi SIPLah yang sedang berjalan berhenti di halaman berikutnya.
 #[tauri::command(async)]
-pub fn siplah_sync_products(state: State<'_, AppState>, toko_id: i64) -> AppResult<SiplahSyncResult> {
+pub fn siplah_sync_cancel(state: State<'_, AppState>) -> AppResult<()> {
+	state.siplah_cancel.store(true, Ordering::SeqCst);
+	Ok(())
+}
+
+/// Ambil semua produk toko. Produk baru disimpan setelah semua halaman selesai, jadi pembatalan
+/// atau kegagalan di tengah jalan tidak meninggalkan katalog yang setengah terisi.
+#[tauri::command(async)]
+pub fn siplah_sync_products(app: AppHandle, state: State<'_, AppState>, toko_id: i64) -> AppResult<SiplahSyncResult> {
+	state.siplah_cancel.store(false, Ordering::SeqCst);
 	// Pastikan profil toko diperbarui
 	let merchant_endpoint = format!("https://api-siplah.tokoladang.co.id/public/merchants/{toko_id}");
 	if let Ok(json_str) = fetch_json_with_curl(&merchant_endpoint) {
@@ -266,6 +311,9 @@ pub fn siplah_sync_products(state: State<'_, AppState>, toko_id: i64) -> AppResu
 	let mut all_products: Vec<SiplahProduk> = Vec::new();
 	// Ambil semua halaman produk sampai habis
 	for page in 1..=100 {
+		if state.siplah_cancel.swap(false, Ordering::SeqCst) {
+			return Err(AppError::InvalidInput("Sinkronisasi dibatalkan. Katalog toko tidak berubah.".into()));
+		}
 		let endpoint = format!("https://api-siplah.tokoladang.co.id/public/products/merchant/{toko_id}?page={page}&sort=");
 		let json_str = fetch_json_with_curl(&endpoint)?;
 		let items: Vec<ProductRaw> = serde_json::from_str(&json_str)
@@ -289,6 +337,8 @@ pub fn siplah_sync_products(state: State<'_, AppState>, toko_id: i64) -> AppResu
 				kena_pajak: it.taxed.unwrap_or(true),
 			});
 		}
+
+		let _ = app.emit("siplah-sync-progress", SiplahSyncProgress { toko_id, halaman: page, produk: all_products.len() });
 
 		if count < 30 {
 			break;
@@ -364,7 +414,29 @@ fn score_match(src_words: &[String], prod_words: &[String], src_norm: &str, prod
 	(score, matched)
 }
 
-#[tauri::command]
+struct MatchTotals {
+	anggaran: i64,
+	anggaran_cocok: i64,
+	estimasi: i64,
+}
+
+/// Jumlahkan pagu dan estimasi toko. Hemat/selisih hanya membandingkan item yang punya produk
+/// cocok; item tanpa padanan tetap dihitung dengan pagunya di `total_perkiraan`.
+fn match_totals(items: &[SiplahMatchItem]) -> MatchTotals {
+	let mut t = MatchTotals { anggaran: 0, anggaran_cocok: 0, estimasi: 0 };
+	for it in items {
+		t.anggaran += it.total_rkas;
+		if let Some(p) = &it.matched_product {
+			let vol = if it.volume > 0.0 { it.volume } else { 1.0 };
+			t.anggaran_cocok += it.total_rkas;
+			t.estimasi += (p.harga as f64 * vol).round() as i64;
+		}
+	}
+	t
+}
+
+#[tauri::command(async)]
+#[allow(clippy::too_many_arguments)] // parameter command Tauri dikirim satu per satu dari frontend
 pub fn siplah_match_prices(
 	state: State<'_, AppState>,
 	year: i32,
@@ -373,6 +445,7 @@ pub fn siplah_match_prices(
 	month: Option<u32>,
 	fund: Option<i64>,
 	only_unspent: Option<bool>,
+	draft_id: Option<String>,
 ) -> AppResult<SiplahMatchReport> {
 	let year = validate_year(year)?;
 	let fund = fund.filter(|f| *f != 0);
@@ -403,6 +476,37 @@ pub fn siplah_match_prices(
 	}
 
 	let items_to_match: Vec<ItemToMatch> = match source_mode.as_str() {
+		// Draft RKAS lokal (Penganggaran RKAS): harga & volume dari draft, bukan dari ARKAS.
+		"draft" => {
+			let id = draft_id
+				.as_deref()
+				.map(str::trim)
+				.filter(|id| !id.is_empty() && id.len() <= 64 && id.chars().all(|c| c.is_ascii_alphanumeric()))
+				.ok_or_else(|| AppError::InvalidInput("draft RKAS belum dipilih".into()))?;
+			let items = state.app_db().draft_items(id)?;
+			items
+				.into_iter()
+				.filter_map(|it| {
+					let volume = match month {
+						Some(m) => it.volume_bulan[(m - 1) as usize],
+						None => it.volume(),
+					};
+					// Item tanpa volume (di bulan itu) tidak punya biaya untuk diperkirakan.
+					(volume > 0.0).then(|| ItemToMatch {
+						total: (volume * it.harga_satuan as f64).round() as i64,
+						id: it.id,
+						nama: it.uraian,
+						satuan: it.satuan,
+						volume,
+						harga: it.harga_satuan,
+						realisasi: 0,
+						status_belanja: "belum".into(),
+						kode_rekening: it.kode_rekening,
+						sumber_dana: None,
+					})
+				})
+				.collect()
+		}
 		"standar_harga" => {
 			let sh_list: Vec<StandarHarga> = state.with_arkas(|db| rkas::standar_harga_search(db, year, "", 2000))?;
 			sh_list
@@ -595,18 +699,7 @@ pub fn siplah_match_prices(
 	let total_lebih_murah = match_items.iter().filter(|i| i.status == "lebih_murah").count();
 	let total_lebih_mahal = match_items.iter().filter(|i| i.status == "lebih_mahal").count();
 
-	let mut total_anggaran_rkas: i64 = 0;
-	let mut total_estimasi_toko: i64 = 0;
-
-	for it in &match_items {
-		total_anggaran_rkas += it.total_rkas;
-		if let Some(p) = &it.matched_product {
-			let vol = if it.volume > 0.0 { it.volume } else { 1.0 };
-			total_estimasi_toko += (p.harga as f64 * vol).round() as i64;
-		}
-	}
-
-	let total_hemat = total_anggaran_rkas - total_estimasi_toko;
+	let totals = match_totals(&match_items);
 
 	let summary = SiplahMatchSummary {
 		total_items,
@@ -615,9 +708,11 @@ pub fn siplah_match_prices(
 		total_sesuai,
 		total_lebih_murah,
 		total_lebih_mahal,
-		total_anggaran_rkas,
-		total_estimasi_toko,
-		total_hemat,
+		total_anggaran_rkas: totals.anggaran,
+		total_anggaran_cocok: totals.anggaran_cocok,
+		total_estimasi_toko: totals.estimasi,
+		total_hemat: totals.anggaran_cocok - totals.estimasi,
+		total_perkiraan: totals.estimasi + (totals.anggaran - totals.anggaran_cocok),
 	};
 
 	Ok(SiplahMatchReport {
@@ -633,6 +728,7 @@ pub fn siplah_match_prices(
 }
 
 #[tauri::command(async)]
+#[allow(clippy::too_many_arguments)] // parameter command Tauri dikirim satu per satu dari frontend
 pub fn siplah_export_match_xlsx(
 	state: State<'_, AppState>,
 	year: i32,
@@ -641,9 +737,10 @@ pub fn siplah_export_match_xlsx(
 	month: Option<u32>,
 	fund: Option<i64>,
 	only_unspent: Option<bool>,
+	draft_id: Option<String>,
 	path: String,
 ) -> AppResult<String> {
-	let report = siplah_match_prices(state, year, toko_id, source_mode, month, fund, only_unspent)?;
+	let report = siplah_match_prices(state, year, toko_id, source_mode, month, fund, only_unspent, draft_id)?;
 	let mut workbook = Workbook::new();
 	let worksheet = workbook.add_worksheet();
 	worksheet.set_name("Pencocokan Harga SIPLah")?;
@@ -745,6 +842,60 @@ pub fn siplah_export_match_xlsx(
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	fn item(total: i64, volume: f64, harga_toko: Option<i64>) -> SiplahMatchItem {
+		SiplahMatchItem {
+			source_id: "x".into(),
+			nama_rkas: "x".into(),
+			satuan: None,
+			volume,
+			harga_rkas: 0,
+			total_rkas: total,
+			realisasi_rkas: 0,
+			status_belanja: "belum".into(),
+			kode_rekening: None,
+			sumber_dana: None,
+			matched_product: harga_toko.map(|harga| SiplahProduk {
+				id: 1,
+				toko_id: 1,
+				nama: "p".into(),
+				harga,
+				stok: 0,
+				terjual: 0,
+				gambar: None,
+				kena_pajak: true,
+			}),
+			score: 0,
+			status: String::new(),
+			selisih: 0,
+			persen_selisih: 0.0,
+			candidates: Vec::new(),
+		}
+	}
+
+	#[test]
+	fn totals_compare_only_matched_items() {
+		// Item cocok: pagu 100.000 (10 × 10.000), toko 9.000 → estimasi 90.000.
+		// Item tanpa padanan: pagu 50.000, tidak boleh dihitung sebagai "hemat".
+		let items = [item(100_000, 10.0, Some(9_000)), item(50_000, 5.0, None)];
+		let t = match_totals(&items);
+		assert_eq!(t.anggaran, 150_000);
+		assert_eq!(t.anggaran_cocok, 100_000);
+		assert_eq!(t.estimasi, 90_000);
+		assert_eq!(t.anggaran_cocok - t.estimasi, 10_000, "hemat");
+		assert_eq!(t.estimasi + (t.anggaran - t.anggaran_cocok), 140_000, "perkiraan total");
+	}
+
+	#[test]
+	fn curl_errors_are_readable() {
+		assert!(curl_error_message(Some(22), "").contains("menolak"));
+		assert!(curl_error_message(Some(28), "").contains("30 detik"));
+		assert_eq!(
+			curl_error_message(Some(6), "Could not resolve host"),
+			"Server SIPLah tidak ditemukan. Periksa koneksi internet. (Could not resolve host)"
+		);
+		assert_eq!(curl_error_message(None, ""), "Gagal menghubungi server SIPLah.");
+	}
 
 	#[test]
 	fn extracts_id_from_url_and_slug() {

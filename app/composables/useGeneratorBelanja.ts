@@ -2,7 +2,7 @@ import type { Ref } from "vue";
 
 /**
  * Dasar halaman generator dokumen: daftar belanja BKU yang bisa disaring dan dicari, isian per
- * belanja yang tersimpan di SIBOS (per tahun anggaran), dan data pendukung (guru, nama kegiatan).
+ * belanja yang tersimpan di Lajur (per tahun anggaran), dan data pendukung (guru, nama kegiatan).
  */
 /** Data pendukung yang diberikan ke pembuat isian. */
 export interface KonteksGenerator<T> {

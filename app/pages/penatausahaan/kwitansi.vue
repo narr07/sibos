@@ -9,8 +9,8 @@
 				icon="i-lucide-info"
 				color="neutral"
 				variant="subtle"
-				title="Gabungan, pengaturan cetak, dan foto nota disimpan di SIBOS. Data ARKAS tidak berubah."
-				description="Pajak hanya tampil bila sudah dicatat; SIBOS tidak menghitung pajak otomatis."
+				title="Gabungan, pengaturan cetak, dan foto nota disimpan di Lajur. Data ARKAS tidak berubah."
+				description="Pajak hanya tampil bila sudah dicatat; Lajur tidak menghitung pajak otomatis."
 			/>
 
 			<div class="flex flex-wrap items-center gap-2">
@@ -45,7 +45,7 @@
 				:loading="loading"
 				sticky
 				empty="Tidak ada belanja pada periode ini."
-				class="min-h-60 flex-1 border border-default rounded-md"
+				class="min-h-60 flex-1 border border-default"
 				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
 			>
 				<template #pilih-header>
@@ -118,7 +118,7 @@
 						</NuxtLink>
 						(bisa langsung dari contoh Excel).
 					</p>
-					<div v-for="j in JENIS_DOKUMEN" :key="j.value" class="flex items-center gap-3 rounded-md border border-default px-3 py-2" :class="hasTemplate(j.value) ? '' : 'opacity-50'">
+					<div v-for="j in JENIS_DOKUMEN" :key="j.value" class="flex items-center gap-3 border border-default px-3 py-2" :class="hasTemplate(j.value) ? '' : 'opacity-50'">
 						<UCheckbox :model-value="docJenis.includes(j.value)" :disabled="!hasTemplate(j.value)" :label="j.label" class="w-40 shrink-0" @update:model-value="(v) => toggleJenis(j.value, !!v)" />
 						<USelect
 							v-if="hasTemplate(j.value)"
@@ -176,7 +176,7 @@
 		</UModal>
 
 		<!-- Atur cetak -->
-		<UModal v-model:open="ovOpen" title="Atur cetak" description="Hanya tersimpan di SIBOS. Data ARKAS tidak berubah." :ui="{ content: 'max-w-2xl' }">
+		<UModal v-model:open="ovOpen" title="Atur cetak" description="Hanya tersimpan di Lajur. Data ARKAS tidak berubah." :ui="{ content: 'max-w-2xl' }">
 			<template #body>
 				<div class="grid sm:grid-cols-2 gap-3">
 					<UFormField label="Nomor nota" class="sm:col-span-2" :hint="ovTarget?.isSiplah ? 'Belanja SIPLah sudah punya invoice' : 'Untuk Cetak Nota (non-SIPLah)'">
@@ -255,7 +255,7 @@
 			<template #body>
 				<div class="space-y-3">
 					<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-						<div v-for="f in fotoFiles" :key="f.id" class="relative border border-default rounded-md overflow-hidden">
+						<div v-for="f in fotoFiles" :key="f.id" class="relative border border-default overflow-hidden">
 							<img v-if="f.mime.startsWith('image/') && fotoData[f.id]" :src="fotoData[f.id]" alt="Foto nota" class="w-full h-40 object-cover">
 							<div v-else class="h-40 flex items-center justify-center text-muted text-sm">
 								{{ f.mime === "application/pdf" ? "PDF" : "Memuat..." }}

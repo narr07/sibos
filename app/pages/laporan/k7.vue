@@ -22,7 +22,7 @@
 				:data="lines"
 				:columns="columns"
 				:meta="{ class: { tr: (row) => row.original.bold ? 'font-semibold' : '' } }"
-				class="border border-default rounded-md"
+				class="border border-default"
 				:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
 			/>
 		</div>

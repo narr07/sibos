@@ -108,7 +108,7 @@
 		</template>
 
 		<template v-else-if="b.type === 'ttd'">
-			<div v-for="(s, i) in b.kolom" :key="i" class="rounded-md border border-default p-2 space-y-1.5">
+			<div v-for="(s, i) in b.kolom" :key="i" class="border border-default p-2 space-y-1.5">
 				<div class="flex items-center">
 					<span class="text-xs font-medium">Penanda tangan {{ i + 1 }}</span>
 					<UButton icon="i-lucide-x" size="xs" color="neutral" variant="ghost" class="ml-auto" aria-label="Hapus" @click="b.kolom.splice(i, 1)" />
@@ -152,7 +152,7 @@
 					<UFormField label="Warna sorotan">
 						<UPopover>
 							<UButton color="neutral" variant="outline" size="sm" block class="justify-start">
-								<span class="size-4 rounded-sm ring ring-default" :style="{ backgroundColor: b.warna }" />
+								<span class="size-4 ring ring-default" :style="{ backgroundColor: b.warna }" />
 								<span class="font-mono text-xs">{{ b.warna }}</span>
 							</UButton>
 							<template #content>

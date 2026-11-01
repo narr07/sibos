@@ -57,7 +57,7 @@
 						:columns="columns"
 						:loading="loading"
 						sticky
-						class="min-h-60 flex-1 border border-default rounded-md"
+						class="min-h-60 flex-1 border border-default"
 						:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
 						@contextmenu="onContextmenu"
 					>

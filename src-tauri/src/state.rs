@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
 use std::sync::{Mutex, MutexGuard};
 
 use crate::error::{AppError, AppResult};
@@ -10,11 +11,13 @@ pub struct AppState {
 	pub app_db: Mutex<AppDb>,
 	/// Folder data aplikasi (%APPDATA%\id.sibos.app).
 	pub data_dir: PathBuf,
+	/// Diset oleh `siplah_sync_cancel`; diperiksa sinkronisasi SIPLah di tiap halaman.
+	pub siplah_cancel: AtomicBool,
 }
 
 impl AppState {
 	pub fn new(app_db: AppDb, data_dir: PathBuf) -> Self {
-		Self { arkas: Mutex::new(None), app_db: Mutex::new(app_db), data_dir }
+		Self { arkas: Mutex::new(None), app_db: Mutex::new(app_db), data_dir, siplah_cancel: AtomicBool::new(false) }
 	}
 
 	pub fn nota_dir(&self) -> PathBuf {

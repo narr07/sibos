@@ -43,7 +43,7 @@
 		<!-- Main Workspace -->
 		<div v-else class="space-y-4 max-w-6xl pb-16">
 			<!-- Toolbar Riwayat Draft SI -->
-			<div v-if="daftarDraft.length > 0" class="flex flex-wrap items-center gap-2 p-3 bg-card rounded-xl border border-default">
+			<div v-if="daftarDraft.length > 0" class="flex flex-wrap items-center gap-2 p-3 bg-card border border-default">
 				<span class="text-xs font-semibold text-highlighted flex items-center gap-1.5">
 					<UIcon name="i-lucide-history" class="size-4 text-muted" />
 					Draft Tersimpan:
@@ -145,7 +145,7 @@
 						</UFormField>
 
 						<!-- Pihak 1: Kepala Sekolah -->
-						<div class="p-2.5 rounded-lg border border-default bg-elevated/40 space-y-2">
+						<div class="p-2.5 border border-default bg-elevated/40 space-y-2">
 							<p class="text-[11px] font-bold text-highlighted uppercase tracking-wider">
 								Pihak 1: Kepala Sekolah
 							</p>
@@ -163,7 +163,7 @@
 						</div>
 
 						<!-- Pihak 2: Bendahara -->
-						<div class="p-2.5 rounded-lg border border-default bg-elevated/40 space-y-2">
+						<div class="p-2.5 border border-default bg-elevated/40 space-y-2">
 							<p class="text-[11px] font-bold text-highlighted uppercase tracking-wider">
 								Pihak 2: Bendahara BOS
 							</p>
@@ -235,7 +235,7 @@
 
 				<!-- Tabel Item Transfer yang Bisa Diedit Langsung -->
 				<div v-else class="space-y-3">
-					<div class="border border-default rounded-lg overflow-x-auto">
+					<div class="border border-default overflow-x-auto">
 						<table class="w-full text-xs">
 							<thead class="bg-elevated/70 border-b border-default font-semibold text-muted">
 								<tr>
@@ -349,7 +349,7 @@
 					</div>
 
 					<!-- Ringkasan Angka Bawah -->
-					<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-elevated/50 border border-default">
+					<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-elevated/50 border border-default">
 						<div>
 							<p class="text-xs text-muted">
 								Total Kotor
@@ -377,7 +377,7 @@
 					</div>
 
 					<!-- Terbilang -->
-					<div class="p-2.5 border border-default rounded-lg bg-card/60 text-xs italic text-muted">
+					<div class="p-2.5 border border-default bg-card/60 text-xs italic text-muted">
 						<strong class="text-highlighted not-italic">Terbilang:</strong> {{ terbilangTeks }}
 					</div>
 				</div>
@@ -408,7 +408,7 @@
 						/>
 
 						<!-- Filter Belum Dibelanjakan -->
-						<div class="flex items-center gap-2 px-2.5 py-1.5 border border-default rounded-md bg-neutral-500/5">
+						<div class="flex items-center gap-2 px-2.5 py-1.5 border border-default bg-neutral-500/5">
 							<USwitch
 								v-model="filterBelumDibelanjakan"
 								size="sm"
@@ -454,7 +454,7 @@
 					</div>
 
 					<!-- List Rencana Belanja ARKAS -->
-					<div class="max-h-96 overflow-y-auto border border-default rounded-lg divide-y divide-default">
+					<div class="max-h-96 overflow-y-auto border border-default divide-y divide-default">
 						<div
 							v-for="b in filteredArkasItems"
 							:key="b.idRapbs"
@@ -481,21 +481,21 @@
 										{{ b.fundName }}
 									</UBadge>
 									<UBadge
-										v-if="statusBelanjaMap.get(b.idRapbs)"
-										:color="statusBelanjaMap.get(b.idRapbs)?.status === 'lunas' ? 'success' : statusBelanjaMap.get(b.idRapbs)?.status === 'sebagian' ? 'info' : 'warning'"
+										v-if="belanjaMap.get(b.idRapbs)?.status"
+										:color="warnaStatusBelanja(belanjaMap.get(b.idRapbs)?.status)"
 										variant="subtle"
 										size="xs"
 									>
-										{{ statusBelanjaMap.get(b.idRapbs)?.label }}
+										{{ labelStatusBelanja(belanjaMap.get(b.idRapbs)) }}
 									</UBadge>
 								</div>
 							</div>
 							<div class="text-right shrink-0">
 								<p class="font-mono font-bold text-highlighted text-sm tabular-nums">
-									{{ rupiah(sisaAnggaranMap.get(b.idRapbs) ?? (b.bulan[filterBulanArkas - 1] ?? 0)) }}
+									{{ rupiah(belanjaMap.get(b.idRapbs)?.sisa ?? (b.bulan[filterBulanArkas - 1] ?? 0)) }}
 								</p>
 								<p class="text-[10px] text-muted">
-									<span v-if="(sisaAnggaranMap.get(b.idRapbs) ?? 0) < (b.bulan[filterBulanArkas - 1] ?? 0)">Sisa Belum Dibelanjakan</span>
+									<span v-if="(belanjaMap.get(b.idRapbs)?.sisa ?? 0) < (b.bulan[filterBulanArkas - 1] ?? 0)">Sisa Belum Dibelanjakan</span>
 									<span v-else>Pagu Bulan {{ BULAN[filterBulanArkas - 1] }}</span>
 								</p>
 							</div>
@@ -538,6 +538,7 @@
 
 <script lang="ts" setup>
 	import type { SiData } from "~/components/Print/Si/StandingInstruction.vue";
+	import type { BelanjaBulan } from "~/utils/belanjaBulanan";
 	import type { RkasItem } from "~/utils/types";
 	import StandingInstruction from "~/components/Print/Si/StandingInstruction.vue";
 
@@ -604,12 +605,6 @@
 		}))
 	]);
 
-	// Format Volume
-	const formatVolume = (vol: number): string => {
-		if (Number.isInteger(vol)) return String(vol);
-		return vol.toLocaleString("id-ID", { maximumFractionDigits: 2 });
-	};
-
 	// Perhitungan Total
 	const totalKotor = computed(() => form.value.items.reduce((acc, it) => acc + (it.jumlah || 0), 0));
 	const totalPajak = computed(() => form.value.items.reduce((acc, it) => acc + (it.pajak || 0), 0));
@@ -650,75 +645,21 @@
 		return map;
 	});
 
-	// Status belanja dan sisa belanja per bulan
-	const statusBelanjaMap = computed(() => {
-		const map = new Map<string, { status: "belum" | "sebagian" | "lunas", label: string }>();
-		const mIdx = filterBulanArkas.value - 1;
-
+	// Pagu, realisasi, sisa, dan status tiap item di bulan terpilih (lihat utils/belanjaBulanan)
+	const belanjaMap = computed(() => {
+		const map = new Map<string, BelanjaBulan>();
 		for (const it of rkasItems.value) {
-			const rel = realisasiItemMap.value.get(it.idRapbs);
-			const paguBulan = it.bulan[mIdx] ?? 0;
-			const spentBulan = rel?.realisasi[mIdx] ?? 0;
-
-			if (paguBulan <= 0) continue;
-
-			if (spentBulan >= paguBulan) {
-				map.set(it.idRapbs, { status: "lunas", label: "Lunas" });
-			} else if (spentBulan > 0) {
-				map.set(it.idRapbs, { status: "sebagian", label: `Sebagian (${rupiah(spentBulan)})` });
-			} else {
-				map.set(it.idRapbs, { status: "belum", label: "Belum Dibelanjakan" });
-			}
-		}
-		return map;
-	});
-
-	// Nominal sisa anggaran yang belum dibelanjakan di bulan terpilih
-	const sisaAnggaranMap = computed(() => {
-		const map = new Map<string, number>();
-		const mIdx = filterBulanArkas.value - 1;
-
-		for (const it of rkasItems.value) {
-			const rel = realisasiItemMap.value.get(it.idRapbs);
-			const paguBulan = it.bulan[mIdx] ?? 0;
-			const spentBulan = rel?.realisasi[mIdx] ?? 0;
-			const sisa = Math.max(0, paguBulan - spentBulan);
-			map.set(it.idRapbs, sisa);
+			map.set(it.idRapbs, belanjaBulan(it, realisasiItemMap.value.get(it.idRapbs), filterBulanArkas.value));
 		}
 		return map;
 	});
 
 	// Filter Item Belanja ARKAS Bulanan
 	const filteredArkasItems = computed(() => {
-		const mIdx = filterBulanArkas.value - 1;
-		const fId = filterFundArkas.value;
-		const q = searchArkas.value.trim().toLowerCase();
-
+		const filter = { fundId: filterFundArkas.value, belumSaja: filterBelumDibelanjakan.value, cari: searchArkas.value };
 		return rkasItems.value.filter((it) => {
-			// Hanya item yang ada pagu/volume di bulan terpilih
-			const paguBulan = it.bulan[mIdx] ?? 0;
-			const volBulan = it.volumeBulan[mIdx] ?? 0;
-			if (paguBulan <= 0 && volBulan <= 0) return false;
-
-			// Filter sumber dana
-			if (fId !== 0 && it.fundId !== fId) return false;
-
-			// Filter status belanja jika toggle "Belum Dibelanjakan Saja" aktif
-			if (filterBelumDibelanjakan.value) {
-				const statusObj = statusBelanjaMap.value.get(it.idRapbs);
-				const sisa = sisaAnggaranMap.value.get(it.idRapbs) ?? paguBulan;
-				// Jangan tampilkan jika sudah lunas atau sisa anggarannya 0
-				if (statusObj?.status === "lunas" || sisa <= 0) return false;
-			}
-
-			// Pencarian
-			if (q) {
-				const matchUraian = it.uraian.toLowerCase().includes(q);
-				const matchRekening = it.kodeRekening?.toLowerCase().includes(q) ?? false;
-				if (!matchUraian && !matchRekening) return false;
-			}
-
-			return true;
+			const b = belanjaMap.value.get(it.idRapbs);
+			return b ? tampilDiBulan(it, b, filterBulanArkas.value, filter) : false;
 		});
 	});
 
@@ -743,17 +684,14 @@
 		selectedArkasIds.value.clear();
 	};
 
-	// Total Nominal Terpilih
-	const totalNominalTerpilih = computed(() => {
-		const mIdx = filterBulanArkas.value - 1;
-		return rkasItems.value
+	// Total Nominal Terpilih: sama persis dengan nominal yang nanti dimasukkan ke rincian SI
+	const totalNominalTerpilih = computed(() =>
+		rkasItems.value
 			.filter((it) => selectedArkasIds.value.has(it.idRapbs))
 			.reduce((acc, it) => {
-				const sisa = sisaAnggaranMap.value.get(it.idRapbs);
-				const nominal = sisa !== undefined ? sisa : (it.bulan[mIdx] || 0);
-				return acc + nominal;
-			}, 0);
-	});
+				const b = belanjaMap.value.get(it.idRapbs);
+				return acc + (b ? nominalImpor(it, b, filterBulanArkas.value) : 0);
+			}, 0));
 
 	// Muat Data Kertas Kerja ARKAS & Realisasi
 	const muatArkas = async () => {
@@ -785,11 +723,7 @@
 		const itemsToImport = rkasItems.value.filter((it) => selectedArkasIds.value.has(it.idRapbs));
 
 		for (const it of itemsToImport) {
-			const paguBulan = it.bulan[mIdx] ?? 0;
-			const sisaBulan = sisaAnggaranMap.value.get(it.idRapbs);
-			const nominalBelanja = (sisaBulan !== undefined && sisaBulan > 0)
-				? sisaBulan
-				: (paguBulan > 0 ? paguBulan : (it.hargaSatuan * Math.max(1, Math.round(it.volumeBulan[mIdx] || it.volume))));
+			const nominalBelanja = nominalImpor(it, belanjaMap.value.get(it.idRapbs) ?? belanjaBulan(it, undefined, bulanAngka), bulanAngka);
 
 			form.value.items.push({
 				id: `arkas-${it.idRapbs}-${bulanAngka}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -910,7 +844,7 @@
 			await api.settingsSet(storageKey.value, daftarDraft.value);
 			toast.add({
 				title: "Draft Tersimpan",
-				description: "Data Standing Instruction berhasil disimpan ke database lokal SIBOS.",
+				description: "Data Standing Instruction berhasil disimpan ke database lokal Lajur.",
 				color: "success"
 			});
 		} catch (err) {

@@ -1,6 +1,6 @@
 export default defineAppConfig({
 	app: {
-		name: "SIBOS",
+		name: "Lajur",
 		tagline: "Pendamping ARKAS untuk SPJ BOSP"
 	},
 	ui: {
@@ -11,6 +11,47 @@ export default defineAppConfig({
 		button: {
 			slots: {
 				base: "cursor-pointer"
+			}
+		},
+		// Sudut siku: komponen yang bawaannya rounded-full (tidak ikut --ui-radius)
+		switch: {
+			slots: {
+				base: "rounded-none",
+				thumb: "rounded-none"
+			}
+		},
+		slider: {
+			slots: {
+				track: "rounded-none",
+				range: "rounded-none",
+				thumb: "rounded-none"
+			}
+		},
+		progress: {
+			slots: {
+				base: "rounded-none",
+				indicator: "rounded-none"
+			}
+		},
+		avatar: {
+			slots: {
+				root: "rounded-none"
+			}
+		},
+		chip: {
+			slots: {
+				base: "rounded-none"
+			}
+		},
+		colorPicker: {
+			slots: {
+				selectorThumb: "rounded-none",
+				trackThumb: "rounded-none"
+			}
+		},
+		fileUpload: {
+			slots: {
+				fileTrailingButton: "rounded-none"
 			}
 		},
 		formField: {

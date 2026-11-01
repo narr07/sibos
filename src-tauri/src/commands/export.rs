@@ -441,7 +441,7 @@ fn realisasi_sheet<'a>(r: &Realisasi, school: &SchoolInfo, fund_label: &str) -> 
 	}
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[allow(clippy::too_many_arguments)] // parameter command Tauri dikirim satu per satu dari frontend
 pub fn export_kertas_kerja_xlsx(
 	state: State<'_, AppState>,
@@ -492,7 +492,7 @@ pub fn export_kertas_kerja_xlsx(
 	Ok(path.display().to_string())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn export_realisasi_xlsx(state: State<'_, AppState>, year: i32, upto: Option<u32>, fund: Option<i64>, path: String) -> AppResult<String> {
 	let year = validate_year(year)?;
 	let fund = fund.filter(|f| *f != 0);
@@ -506,7 +506,7 @@ pub fn export_realisasi_xlsx(state: State<'_, AppState>, year: i32, upto: Option
 }
 
 /// Semua laporan satu tahun dalam satu file Excel: BKU, buku pembantu, realisasi, kertas kerja.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn export_all_xlsx(state: State<'_, AppState>, year: i32, fund: Option<i64>, path: String) -> AppResult<String> {
 	let year = validate_year(year)?;
 	let fund = fund.filter(|f| *f != 0);

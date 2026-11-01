@@ -1,6 +1,6 @@
 // Generator dokumen rapat (undangan, daftar hadir, berita acara, notulen) sebagai bukti SPJ konsumsi rapat.
 
-/** Guru / tenaga kependidikan untuk daftar hadir (diisi di Pengaturan, disimpan di SIBOS). */
+/** Guru / tenaga kependidikan untuk daftar hadir (diisi di Pengaturan, disimpan di Lajur). */
 export interface Guru {
 	id: string
 	nama: string

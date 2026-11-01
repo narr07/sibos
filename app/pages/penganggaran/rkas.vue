@@ -3,60 +3,52 @@
 		<div v-if="!connected" class="py-16 text-center text-muted">
 			Hubungkan ARKAS terlebih dahulu.
 		</div>
-		<div v-else class="grid lg:grid-cols-[18rem_1fr] gap-4">
-			<div class="space-y-3">
-				<UAlert icon="i-lucide-info" color="neutral" variant="subtle" title="Draft disimpan di SIBOS saja" description="Gunakan untuk menyusun dan mensimulasikan perubahan/pergeseran sebelum diinput di ARKAS." />
-				<UButton block icon="i-lucide-download" @click="createOpen = true">
+		<div v-else class="space-y-4">
+			<!-- Toolbar: pilih draft & aksi. Dulu kolom kiri tetap; dipindah ke atas agar tabel selebar layar. -->
+			<div class="flex flex-wrap items-center gap-2">
+				<USelectMenu
+					:model-value="selectedId ?? undefined"
+					:items="draftOptions"
+					value-key="value"
+					icon="i-lucide-files"
+					placeholder="Pilih draft"
+					:search-input="drafts.length > 6 ? { placeholder: 'Cari draft...' } : false"
+					class="w-80"
+					@update:model-value="(v) => (selectedId = v ?? null)"
+				/>
+				<UButton icon="i-lucide-download" color="neutral" variant="outline" @click="createOpen = true">
 					Draft baru dari ARKAS
 				</UButton>
-				<div class="space-y-2">
-					<UButton
-						v-for="dr in drafts"
-						:key="dr.id"
-						block
-						:color="dr.id === selectedId ? 'primary' : 'neutral'"
-						:variant="dr.id === selectedId ? 'soft' : 'outline'"
-						class="justify-start text-left p-3"
-						@click="selectedId = dr.id"
-					>
-						<div class="min-w-0">
-							<div class="flex items-center gap-2">
-								<UBadge :color="jenisColor[dr.jenis]" variant="subtle" size="sm">
-									{{ jenisLabel[dr.jenis] }}
-								</UBadge>
-								<span class="font-medium truncate">{{ dr.nama }}</span>
-							</div>
-							<p class="text-xs text-muted mt-1 tabular">
-								{{ dr.itemCount }} item · {{ rupiah(dr.total) }}
-							</p>
-						</div>
+				<p class="text-xs text-muted flex items-center gap-1.5">
+					<UIcon name="i-lucide-info" class="size-4 shrink-0" />
+					Draft hanya disimpan di Lajur untuk simulasi; RKAS di ARKAS tidak berubah.
+				</p>
+				<div v-if="detail" class="ml-auto flex flex-wrap gap-2">
+					<UButton color="neutral" variant="outline" icon="i-lucide-plus" @click="editItem(null)">
+						Item
 					</UButton>
-					<p v-if="!drafts.length" class="text-sm text-muted text-center py-6">
-						Belum ada draft untuk tahun ini.
-					</p>
+					<UDropdownMenu :items="draftMenu">
+						<UButton color="neutral" variant="outline" icon="i-lucide-ellipsis" aria-label="Aksi draft" />
+					</UDropdownMenu>
 				</div>
 			</div>
 
-			<div v-if="detail" class="space-y-4 min-w-0">
-				<div class="flex flex-wrap items-center gap-2">
-					<div class="min-w-0">
-						<p class="text-lg font-semibold truncate">
-							{{ detail.draft.nama }}
-						</p>
-						<p class="text-sm text-muted">
-							{{ jenisLabel[detail.draft.jenis] }} · {{ detail.fundName || `Sumber dana ${detail.draft.sumberDana}` }}
-							<span v-if="detail.parent"> · dari "{{ detail.parent.nama }}"</span>
-						</p>
-					</div>
-					<div class="ml-auto flex flex-wrap gap-2">
-						<UButton size="sm" color="neutral" variant="outline" icon="i-lucide-plus" @click="editItem(null)">
-							Item
-						</UButton>
-						<UDropdownMenu :items="draftMenu">
-							<UButton size="sm" color="neutral" variant="outline" icon="i-lucide-ellipsis" aria-label="Aksi draft" />
-						</UDropdownMenu>
-					</div>
-				</div>
+			<UEmpty
+				v-if="!drafts.length"
+				icon="i-lucide-files"
+				title="Belum ada draft untuk tahun ini"
+				description="Salin RKAS yang berlaku di ARKAS sebagai draft Awal, lalu ubah item, harga, dan volumenya di sini."
+				:actions="[{ label: 'Draft baru dari ARKAS', icon: 'i-lucide-download', onClick: () => { createOpen = true } }]"
+			/>
+
+			<div v-else-if="detail" class="space-y-4 min-w-0">
+				<p class="text-sm text-muted flex flex-wrap items-center gap-2">
+					<UBadge :color="jenisColor[detail.draft.jenis]" variant="subtle" size="sm">
+						{{ jenisLabel[detail.draft.jenis] }}
+					</UBadge>
+					<span>{{ detail.fundName || `Sumber dana ${detail.draft.sumberDana}` }}</span>
+					<span v-if="detail.parent">· dari "{{ detail.parent.nama }}"</span>
+				</p>
 
 				<div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
 					<UCard :ui="{ body: 'p-3 sm:p-3' }">
@@ -88,14 +80,19 @@
 					</UCard>
 				</div>
 
-				<UInput v-model="search" icon="i-lucide-search" placeholder="Cari item..." class="w-72" />
+				<UTabs v-model="tab" :items="tabItems" :content="false" variant="link" />
+
+				<RkasBandingSiplah v-if="tab === 'siplah'" :draft="detail.draft" :items="detail.items" @applied="onHargaDipakai" />
+
+				<UInput v-if="tab === 'item'" v-model="search" icon="i-lucide-search" placeholder="Cari item..." class="w-72" />
 
 				<UTable
+					v-if="tab === 'item'"
 					:data="filteredItems"
 					:columns="itemColumns"
 					sticky
 					empty="Belum ada item."
-					class="max-h-[calc(100vh-26rem)] border border-default rounded-md"
+					class="max-h-[calc(100vh-26rem)] border border-default"
 					:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
 				>
 					<template #kode-cell="{ row }">
@@ -120,9 +117,9 @@
 					</template>
 				</UTable>
 			</div>
-			<div v-else class="py-16 text-center text-muted">
-				Pilih atau buat draft RKAS.
-			</div>
+			<p v-else class="py-16 text-center text-muted">
+				Pilih draft RKAS.
+			</p>
 		</div>
 
 		<!-- Draft baru -->
@@ -229,10 +226,20 @@
 	const detail = ref<DraftDetail | null>(null);
 	const busy = ref(false);
 	const search = ref("");
+	const tab = ref<"item" | "siplah">("item");
+	const tabItems = [
+		{ label: "Item draft", value: "item", icon: "i-lucide-list" },
+		{ label: "Bandingkan harga SIPLah", value: "siplah", icon: "i-lucide-scale" }
+	];
 
 	const jenisLabel: Record<Draft["jenis"], string> = { awal: "Awal", perubahan: "Perubahan", pergeseran: "Pergeseran" };
 	const jenisColor: Record<Draft["jenis"], "neutral" | "info" | "warning"> = { awal: "neutral", perubahan: "info", pergeseran: "warning" };
 	const fundItems = computed(() => funds.value.map((f) => ({ label: f.name, value: f.id })));
+	const draftOptions = computed(() => drafts.value.map((d) => ({
+		label: d.nama,
+		description: `${jenisLabel[d.jenis]} · ${d.itemCount} item · ${rupiah(d.total)}`,
+		value: d.id
+	})));
 
 	const volume = (it: Pick<DraftItem, "volumeBulan">) => it.volumeBulan.reduce((a, b) => a + (b || 0), 0);
 	const jumlah = (it: Pick<DraftItem, "volumeBulan" | "hargaSatuan">) => Math.round(volume(it) * it.hargaSatuan);
@@ -340,6 +347,11 @@
 			await loadDetail();
 			await loadList();
 		}
+	};
+	// Harga toko dipakai dari tab SIPLah: muat ulang total draft tanpa mengosongkan hasil perbandingan.
+	const onHargaDipakai = async () => {
+		await loadDetail();
+		await loadList();
 	};
 	const deleteItem = async (it: DraftItem) => {
 		if (!selectedId.value) return;

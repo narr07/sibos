@@ -198,7 +198,7 @@ fn run_year(rows: &[KasRow]) -> YearLedger {
 					checkpoint_warnings.push((
 						month,
 						format!(
-							"Saldo awal {akun} {} ({}) di ARKAS {}, hitungan SIBOS {}",
+							"Saldo awal {akun} {} ({}) di ARKAS {}, hitungan Lajur {}",
 							r.tanggal,
 							r.fund_name,
 							rupiah(r.saldo),

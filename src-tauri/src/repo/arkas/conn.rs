@@ -71,15 +71,14 @@ impl ArkasDb {
 	}
 
 	/// Salin file ARKAS (dan -wal bila ada) ke folder temp, lalu baca salinannya.
+	/// Nama salinan unik: saat koneksi dimuat ulang, `Drop` koneksi lama tidak boleh
+	/// menghapus salinan milik koneksi baru.
 	fn copy_to_temp(path: &Path) -> AppResult<PathBuf> {
 		let dir = std::env::temp_dir().join("sibos");
 		std::fs::create_dir_all(&dir)?;
-		let target = dir.join("arkas-snapshot.db");
-		std::fs::copy(path, &target)?;
-		let wal = path.with_extension("db-wal");
-		if wal.is_file() {
-			std::fs::copy(&wal, target.with_extension("db-wal"))?;
-		}
+		remove_stale_snapshots(&dir);
+		let target = dir.join(crate::util::unique_name("arkas-snapshot", "db"));
+		copy_consistent(path, &target)?;
 		Ok(target)
 	}
 
@@ -92,7 +91,56 @@ impl Drop for ArkasDb {
 	fn drop(&mut self) {
 		if let Some(snapshot) = &self.snapshot_path {
 			let _ = std::fs::remove_file(snapshot);
-			let _ = std::fs::remove_file(snapshot.with_extension("db-wal"));
+			let _ = std::fs::remove_file(wal_path(snapshot));
+		}
+	}
+}
+
+/// File WAL SQLite selalu `<nama file db>-wal` (mis. `arkas.db-wal`).
+pub fn wal_path(db: &Path) -> PathBuf {
+	let mut name = db.as_os_str().to_owned();
+	name.push("-wal");
+	PathBuf::from(name)
+}
+
+/// Ukuran + waktu ubah file (None bila tidak ada), untuk mendeteksi file yang berubah saat disalin.
+fn stamp(path: &Path) -> Option<(u64, std::time::SystemTime)> {
+	let meta = std::fs::metadata(path).ok()?;
+	Some((meta.len(), meta.modified().ok()?))
+}
+
+/// Salin database ARKAS beserta file `-wal`-nya sebagai satu kesatuan. Bila ARKAS sedang menulis
+/// (ukuran/waktu ubah berubah selama penyalinan), salinan diulang. File asli hanya dibaca.
+pub fn copy_consistent(source: &Path, target: &Path) -> AppResult<()> {
+	let source_wal = wal_path(source);
+	let target_wal = wal_path(target);
+	for attempt in 0..5 {
+		if attempt > 0 {
+			std::thread::sleep(Duration::from_millis(400));
+		}
+		let before = (stamp(source), stamp(&source_wal));
+		std::fs::copy(source, target)?;
+		if source_wal.is_file() {
+			std::fs::copy(&source_wal, &target_wal)?;
+		} else {
+			// Jangan biarkan WAL lama di tujuan menempel ke salinan baru.
+			let _ = std::fs::remove_file(&target_wal);
+		}
+		if (stamp(source), stamp(&source_wal)) == before {
+			return Ok(());
+		}
+	}
+	Err(AppError::ArkasBusy)
+}
+
+/// Hapus salinan sementara sisa sesi sebelumnya (mis. aplikasi ditutup paksa).
+/// Salinan yang masih dibuka koneksi aktif gagal dihapus di Windows, dan itu memang diharapkan.
+fn remove_stale_snapshots(dir: &Path) {
+	let Ok(entries) = std::fs::read_dir(dir) else { return };
+	for entry in entries.flatten() {
+		let name = entry.file_name();
+		if name.to_string_lossy().starts_with("arkas-snapshot") {
+			let _ = std::fs::remove_file(entry.path());
 		}
 	}
 }

@@ -47,7 +47,7 @@ pub(crate) fn load_book(state: &AppState, req: &BookRequest) -> AppResult<Book> 
 	Ok(build_book_with_manual(req, &rows, &balances, &overrides, &manual))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn book(
 	state: State<'_, AppState>,
 	kind: BookKind,
@@ -58,7 +58,7 @@ pub fn book(
 	load_book(&state, &request(kind, year, month, fund)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn last_active_month(state: State<'_, AppState>, year: i32) -> AppResult<Option<u32>> {
 	let year = validate_year(year)?;
 	state.with_arkas(|db| bku::last_active_month(db, year))
@@ -73,7 +73,7 @@ fn validate_id(id: &str) -> AppResult<&str> {
 }
 
 /// Ubah uraian tampilan (disimpan di sibos.db). Uraian kosong = kembalikan ke uraian ARKAS.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn uraian_override_set(state: State<'_, AppState>, year: i32, id: String, uraian: String) -> AppResult<()> {
 	let year = validate_year(year)?;
 	let id = validate_id(&id)?;
@@ -89,13 +89,13 @@ pub fn uraian_override_set(state: State<'_, AppState>, year: i32, id: String, ur
 	}
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn uraian_override_delete(state: State<'_, AppState>, id: String) -> AppResult<()> {
 	state.app_db().uraian_override_delete(validate_id(&id)?)
 }
 
 /// Export buku ke file Excel di path yang dipilih pengguna lewat dialog simpan.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn export_book_xlsx(
 	state: State<'_, AppState>,
 	kind: BookKind,

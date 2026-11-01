@@ -2,7 +2,7 @@
 	<div class="viz-root" :style="{ '--series-2': temaHangat ? 'var(--series-cool)' : 'var(--series-warm)' }">
 		<div class="flex items-center gap-4 mb-2 text-xs text-muted">
 			<span v-for="(s, i) in series" :key="s.label" class="flex items-center gap-1.5">
-				<span class="size-2.5 rounded-sm" :style="{ background: `var(--series-${i + 1})` }" />
+				<span class="size-2.5" :style="{ background: `var(--series-${i + 1})` }" />
 				<span class="text-default">{{ s.label }}</span>
 			</span>
 			<UButton size="xs" color="neutral" variant="ghost" class="ml-auto" :icon="showTable ? 'i-lucide-chart-column' : 'i-lucide-table'" @click="showTable = !showTable">
@@ -48,14 +48,14 @@
 			</svg>
 			<div
 				v-if="hover !== null"
-				class="absolute top-0 pointer-events-none rounded-md border border-default bg-default px-2.5 py-1.5 text-xs shadow-md"
+				class="absolute top-0 pointer-events-none border border-default bg-default px-2.5 py-1.5 text-xs shadow-md"
 				:style="tooltipStyle"
 			>
 				<p class="font-medium mb-0.5">
 					{{ BULAN[hover] }}
 				</p>
 				<p v-for="(s, si) in series" :key="si" class="flex items-center gap-1.5 tabular">
-					<span class="size-2 rounded-sm" :style="{ background: `var(--series-${si + 1})` }" />
+					<span class="size-2" :style="{ background: `var(--series-${si + 1})` }" />
 					<span class="text-muted">{{ s.label }}</span>
 					<span class="ml-auto pl-3">{{ rupiah(s.values[hover] ?? 0) }}</span>
 				</p>

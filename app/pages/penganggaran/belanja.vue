@@ -56,9 +56,9 @@
 		<!-- Main Content -->
 		<div v-else class="flex min-h-0 flex-1 flex-col gap-4">
 			<!-- Header Info Toko Terpilih & Link Toko -->
-			<div v-if="selectedToko" class="p-3.5 border border-default rounded-xl bg-elevated/40 flex flex-wrap items-center justify-between gap-3">
+			<div v-if="selectedToko" class="p-3.5 border border-default bg-elevated/40 flex flex-wrap items-center justify-between gap-3">
 				<div class="flex items-center gap-3 min-w-0">
-					<div class="size-12 rounded-lg bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-default">
+					<div class="size-12 bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-default">
 						<img
 							v-if="selectedToko.gambar"
 							:src="selectedToko.gambar"
@@ -106,13 +106,24 @@
 						title="Sinkronkan ulang katalog produk toko dari SIPLah"
 						@click="sinkronkanToko"
 					>
-						Sinkronkan Produk
+						{{ syncing && progressLabel ? progressLabel : "Sinkronkan Produk" }}
+					</UButton>
+					<UButton
+						v-if="syncing"
+						icon="i-lucide-x"
+						color="neutral"
+						variant="outline"
+						size="sm"
+						:disabled="cancelling"
+						@click="batalkanSinkron"
+					>
+						{{ cancelling ? "Membatalkan..." : "Batalkan" }}
 					</UButton>
 				</div>
 			</div>
 
 			<!-- Toolbar Filter -->
-			<div class="flex flex-wrap items-center gap-2.5 bg-card/60 p-3 rounded-lg border border-default">
+			<div class="flex flex-wrap items-center gap-2.5 bg-card/60 p-3 border border-default">
 				<!-- Pemilih Bulan -->
 				<USelect
 					v-model="selectedMonth"
@@ -149,7 +160,7 @@
 				/>
 
 				<!-- Toggle Hanya yang Belum Dibelanjakan -->
-				<div class="flex items-center gap-2 px-2 py-1.5 rounded border border-default bg-elevated/40">
+				<div class="flex items-center gap-2 px-2 py-1.5 border border-default bg-elevated/40">
 					<USwitch
 						v-model="onlyUnspent"
 						size="sm"
@@ -228,7 +239,7 @@
 						{{ matchReport.summary.totalHemat >= 0 ? `Hemat ${rupiah(matchReport.summary.totalHemat)}` : `Lebih ${rupiah(Math.abs(matchReport.summary.totalHemat))}` }}
 					</p>
 					<p class="text-[11px] text-muted mt-0.5">
-						{{ matchReport.summary.totalLebihMurah }} lebih murah · {{ matchReport.summary.totalLebihMahal }} lebih mahal
+						{{ matchReport.summary.totalLebihMurah }} lebih murah · {{ matchReport.summary.totalLebihMahal }} lebih mahal · dari {{ matchReport.summary.totalCocok }} item cocok
 					</p>
 				</UCard>
 			</div>
@@ -236,7 +247,7 @@
 			<!-- Info banner jika toko belum memiliki produk tersimpan -->
 			<div
 				v-if="selectedToko && selectedToko.totalProduk === 0"
-				class="p-4 border border-warning/40 bg-warning/5 rounded-lg flex items-center justify-between gap-3 text-xs"
+				class="p-4 border border-warning/40 bg-warning/5 flex items-center justify-between gap-3 text-xs"
 			>
 				<div class="flex items-center gap-2 text-warning">
 					<UIcon name="i-lucide-info" class="size-5 shrink-0" />
@@ -252,7 +263,7 @@
 					:loading="syncing"
 					@click="sinkronkanToko"
 				>
-					Sinkronkan Sekarang
+					{{ syncing && progressLabel ? progressLabel : "Sinkronkan Sekarang" }}
 				</UButton>
 			</div>
 
@@ -267,7 +278,7 @@
 			<!-- EMPTY ROWS -->
 			<div
 				v-else-if="rows.length === 0"
-				class="py-16 text-center text-muted border border-dashed border-default rounded-xl bg-card/40"
+				class="py-16 text-center text-muted border border-dashed border-default bg-card/40"
 			>
 				<UIcon name="i-lucide-shopping-bag" class="size-10 mx-auto mb-2 opacity-50" />
 				<p class="font-medium text-highlighted">
@@ -283,7 +294,7 @@
 				<div
 					v-for="item in rows"
 					:key="item.sourceId"
-					class="p-4 rounded-xl border border-default bg-card shadow-xs hover:border-primary/40 transition-colors"
+					class="p-4 border border-default bg-card shadow-xs hover:border-primary/40 transition-colors"
 				>
 					<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:divide-x divide-default">
 						<!-- KOLOM KIRI: Rencana Belanja RKAS -->
@@ -311,7 +322,7 @@
 							</div>
 
 							<!-- Rincian Angka Belanja RKAS -->
-							<div class="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-elevated/60 text-center border border-default/70">
+							<div class="grid grid-cols-3 gap-2 p-2.5 bg-elevated/60 text-center border border-default/70">
 								<div>
 									<p class="text-[10px] text-muted">
 										Volume Bulan Ini
@@ -345,7 +356,7 @@
 							<div v-if="item.matchedProduct" class="space-y-2.5">
 								<div class="flex items-start gap-3">
 									<!-- Foto Produk (URL siplah-oss yang valid) -->
-									<div class="size-14 rounded-lg border border-default bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
+									<div class="size-14 border border-default bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
 										<img
 											v-if="item.matchedProduct.gambar"
 											:src="item.matchedProduct.gambar"
@@ -370,7 +381,7 @@
 								</div>
 
 								<!-- Rincian Harga Toko & Perbandingan -->
-								<div class="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-elevated/60 text-center border border-default/70">
+								<div class="grid grid-cols-3 gap-2 p-2.5 bg-elevated/60 text-center border border-default/70">
 									<div>
 										<p class="text-[10px] text-muted">
 											Harga Toko Satuan
@@ -451,7 +462,7 @@
 							</div>
 
 							<!-- Jika belum ada produk cocok -->
-							<div v-else class="h-full flex flex-col items-center justify-center text-center p-4 rounded-lg border border-dashed border-default bg-elevated/30">
+							<div v-else class="h-full flex flex-col items-center justify-center text-center p-4 border border-dashed border-default bg-elevated/30">
 								<UIcon name="i-lucide-package-search" class="size-7 text-muted mb-1 opacity-60" />
 								<p class="text-xs font-medium text-muted">
 									Belum ada produk yang cocok di toko ini
@@ -478,7 +489,7 @@
 		<UModal v-model:open="modalPilihKandidat" :title="`Pilih Produk Toko: ${activeMatchItem?.namaRkas ?? ''}`">
 			<template #body>
 				<div v-if="activeMatchItem" class="space-y-4">
-					<div class="p-3 border border-default rounded-lg bg-elevated/50 text-xs space-y-1">
+					<div class="p-3 border border-default bg-elevated/50 text-xs space-y-1">
 						<p class="text-muted">
 							Item RKAS: <strong class="text-highlighted">{{ activeMatchItem.namaRkas }}</strong>
 						</p>
@@ -497,11 +508,11 @@
 							<div
 								v-for="c in activeMatchItem.candidates"
 								:key="c.produk.id"
-								class="p-2.5 border rounded-lg flex items-center justify-between gap-3 cursor-pointer transition-colors"
+								class="p-2.5 border flex items-center justify-between gap-3 cursor-pointer transition-colors"
 								:class="activeMatchItem.matchedProduct?.id === c.produk.id ? 'border-primary bg-primary/10' : 'border-default hover:bg-neutral-500/5'"
 								@click="tetapkanProduk(c.produk)"
 							>
-								<div class="size-10 rounded border border-default bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
+								<div class="size-10 border border-default bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
 									<img
 										v-if="c.produk.gambar"
 										:src="c.produk.gambar"
@@ -549,11 +560,11 @@
 							<div
 								v-for="p in filteredManualCandidates"
 								:key="p.id"
-								class="p-2 border border-default rounded-md hover:bg-neutral-500/5 cursor-pointer flex items-center justify-between text-xs"
+								class="p-2 border border-default hover:bg-neutral-500/5 cursor-pointer flex items-center justify-between text-xs"
 								@click="tetapkanProduk(p)"
 							>
 								<div class="flex items-center gap-2 min-w-0">
-									<div class="size-7 rounded border border-default bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
+									<div class="size-7 border border-default bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
 										<img
 											v-if="p.gambar"
 											:src="p.gambar"
@@ -611,7 +622,6 @@
 	// Data matching
 	const matchReport = ref<SiplahMatchReport | null>(null);
 	const loadingMatch = ref(false);
-	const syncing = ref(false);
 	const errorMessageText = ref("");
 
 	// Modal kandidat
@@ -664,12 +674,6 @@
 		}
 	};
 
-	// Helper format volume
-	const formatVolume = (vol: number): string => {
-		if (Number.isInteger(vol)) return String(vol);
-		return vol.toLocaleString("id-ID", { maximumFractionDigits: 2 });
-	};
-
 	// Muat daftar toko
 	const muatToko = async () => {
 		loadingToko.value = true;
@@ -716,28 +720,13 @@
 		}
 	};
 
-	// Sinkronkan produk toko aktif
-	const sinkronkanToko = async () => {
-		if (selectedTokoId.value === undefined) return;
-		syncing.value = true;
-		try {
-			const res = await api.siplahSyncProducts(selectedTokoId.value);
-			toast.add({
-				title: "Sinkronisasi Berhasil",
-				description: `Berhasil mengimpor ${res.total} produk dari SIPLah.`,
-				color: "success"
-			});
-			await muatToko();
-			await muatMatch();
-		} catch (err) {
-			toast.add({
-				title: "Sinkronisasi Gagal",
-				description: errorMessage(err),
-				color: "error"
-			});
-		} finally {
-			syncing.value = false;
-		}
+	// Sinkronkan produk toko aktif (progres per halaman + batal)
+	const { syncing, cancelling, progressLabel, sinkronkan, batalkan: batalkanSinkron } = useSiplahSync(async () => {
+		await muatToko();
+		await muatMatch();
+	});
+	const sinkronkanToko = () => {
+		if (selectedTokoId.value !== undefined) sinkronkan(selectedTokoId.value);
 	};
 
 	// Buka modal pilih kandidat
@@ -760,43 +749,9 @@
 		if (!activeMatchItem.value || !matchReport.value) return;
 
 		const item = activeMatchItem.value;
-		item.matchedProduct = produk;
-		item.selisih = produk.harga - item.hargaRkas;
+		pasangProduk(item, produk);
 		item.score = 100;
-
-		if (item.selisih === 0) {
-			item.status = "sesuai";
-		} else if (item.selisih < 0) {
-			item.status = "lebih_murah";
-		} else {
-			item.status = "lebih_mahal";
-		}
-
-		// Hitung ulang summary
-		let totalEstimasi = 0;
-		let totalSesuai = 0;
-		let totalMurah = 0;
-		let totalMahal = 0;
-		let totalCocok = 0;
-
-		for (const it of matchReport.value.items) {
-			if (it.matchedProduct) {
-				totalCocok += 1;
-				const vol = Math.max(1, Math.round(it.volume));
-				totalEstimasi += it.matchedProduct.harga * vol;
-				if (it.status === "sesuai") totalSesuai += 1;
-				else if (it.status === "lebih_murah") totalMurah += 1;
-				else if (it.status === "lebih_mahal") totalMahal += 1;
-			}
-		}
-
-		matchReport.value.summary.totalCocok = totalCocok;
-		matchReport.value.summary.totalTidakCocok = matchReport.value.items.length - totalCocok;
-		matchReport.value.summary.totalSesuai = totalSesuai;
-		matchReport.value.summary.totalLebihMurah = totalMurah;
-		matchReport.value.summary.totalLebihMahal = totalMahal;
-		matchReport.value.summary.totalEstimasiToko = totalEstimasi;
-		matchReport.value.summary.totalHemat = matchReport.value.summary.totalAnggaranRkas - totalEstimasi;
+		matchReport.value.summary = ringkasanSiplah(matchReport.value.items);
 
 		modalPilihKandidat.value = false;
 		toast.add({

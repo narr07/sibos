@@ -30,13 +30,13 @@ fn clean_name(nama: &str) -> AppResult<String> {
 	Ok(n.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_list(state: State<'_, AppState>, year: i32) -> AppResult<Vec<Draft>> {
 	state.app_db().drafts(validate_year(year)?)
 }
 
 /// Draft "Awal" dari RKAS yang berlaku di ARKAS (ARKAS hanya dibaca).
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_from_arkas(state: State<'_, AppState>, year: i32, fund: i64, nama: String) -> AppResult<String> {
 	let year = validate_year(year)?;
 	let nama = clean_name(&nama)?;
@@ -72,7 +72,7 @@ pub fn rkas_draft_from_arkas(state: State<'_, AppState>, year: i32, fund: i64, n
 }
 
 /// Salin draft menjadi versi Perubahan atau Pergeseran.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_copy(state: State<'_, AppState>, id: String, jenis: String, nama: String) -> AppResult<String> {
 	let id = validate_id(&id)?;
 	if jenis != "perubahan" && jenis != "pergeseran" {
@@ -96,7 +96,7 @@ pub struct DraftDetail {
 	pub fund_name: String,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_detail(state: State<'_, AppState>, id: String) -> AppResult<DraftDetail> {
 	let id = validate_id(&id)?;
 	let (draft, items, parent) = {
@@ -121,27 +121,27 @@ pub fn rkas_draft_detail(state: State<'_, AppState>, id: String) -> AppResult<Dr
 	Ok(DraftDetail { draft, items, parent, kode_names, rekening_names, fund_name })
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_item_save(state: State<'_, AppState>, draft_id: String, item: DraftItem) -> AppResult<String> {
 	state.app_db().draft_item_save(validate_id(&draft_id)?, &item)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_item_delete(state: State<'_, AppState>, draft_id: String, item_id: String) -> AppResult<()> {
 	state.app_db().draft_item_delete(validate_id(&draft_id)?, validate_id(&item_id)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_rename(state: State<'_, AppState>, id: String, nama: String) -> AppResult<()> {
 	state.app_db().draft_rename(validate_id(&id)?, &clean_name(&nama)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_delete(state: State<'_, AppState>, id: String) -> AppResult<()> {
 	state.app_db().draft_delete(validate_id(&id)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rkas_draft_export_xlsx(state: State<'_, AppState>, id: String, path: String) -> AppResult<String> {
 	let detail = rkas_draft_detail(state.clone(), id)?;
 	let mut target = std::path::PathBuf::from(path.trim());

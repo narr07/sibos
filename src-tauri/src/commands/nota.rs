@@ -29,7 +29,7 @@ fn validate_ref(id: &str) -> AppResult<&str> {
 	}
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn nota_list(state: State<'_, AppState>, year: i32, month: Option<u32>, fund: Option<i64>) -> AppResult<Vec<NotaGroup>> {
 	let year = validate_year(year)?;
 	let (rows, notas) = state.with_arkas(|db| Ok((bku::kas_rows(db, year)?, bku::nota_infos(db, year)?)))?;
@@ -86,7 +86,7 @@ fn clean_text(label: &str, text: &str, max: usize) -> AppResult<String> {
 }
 
 /// Gabungkan beberapa transaksi menjadi satu bukti (disimpan di sibos.db, ARKAS tidak berubah).
-#[tauri::command]
+#[tauri::command(async)]
 pub fn merge_create(
 	state: State<'_, AppState>,
 	year: i32,
@@ -102,19 +102,19 @@ pub fn merge_create(
 	state.app_db().merge_create(year, &no_bukti, &uraian, tanggal.as_deref().filter(|t| !t.is_empty()), &items)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn merge_update(state: State<'_, AppState>, id: String, no_bukti: String, uraian: String, tanggal: Option<String>) -> AppResult<()> {
 	let no_bukti = clean_text("Nomor bukti", &no_bukti, 60)?;
 	let uraian = clean_text("Uraian", &uraian, 500)?;
 	state.app_db().merge_update(validate_ref(&id)?, &no_bukti, &uraian, tanggal.as_deref().filter(|t| !t.is_empty()))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn merge_delete(state: State<'_, AppState>, id: String) -> AppResult<()> {
 	state.app_db().merge_delete(validate_ref(&id)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn print_status_set(state: State<'_, AppState>, kind: String, refs: Vec<String>, printed: bool) -> AppResult<()> {
 	if !["bukti", "a2", "nota"].contains(&kind.as_str()) {
 		return Err(AppError::InvalidInput("jenis cetak tidak dikenal".into()));
@@ -123,7 +123,7 @@ pub fn print_status_set(state: State<'_, AppState>, kind: String, refs: Vec<Stri
 	state.app_db().print_status_set(&kind, &refs, printed)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn print_override_set(state: State<'_, AppState>, ref_id: String, value: PrintOverride) -> AppResult<()> {
 	state.app_db().print_override_set(validate_ref(&ref_id)?, &value)
 }
@@ -138,7 +138,7 @@ pub struct NotaTaxInput {
 }
 
 /// Simpan pajak manual satu nota. Otomatis masuk Buku Pembantu Pajak sebagai pungut (dan setor bila ada tanggalnya).
-#[tauri::command]
+#[tauri::command(async)]
 #[allow(clippy::too_many_arguments)]
 pub fn nota_tax_set(
 	state: State<'_, AppState>,
@@ -180,7 +180,7 @@ pub fn nota_tax_set(
 	state.app_db().nota_tax_replace(ref_id, &entries)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn nota_file_list(state: State<'_, AppState>, year: i32) -> AppResult<Vec<NotaFile>> {
 	state.app_db().nota_files(validate_year(year)?)
 }
@@ -226,7 +226,7 @@ fn prepare_file(source: &Path) -> AppResult<(Vec<u8>, &'static str, &'static str
 }
 
 /// Simpan foto nota ke `nota/<tahun>/<MM-Bulan>/`. File asli pengguna tidak diubah.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn nota_file_upload(
 	state: State<'_, AppState>,
 	year: i32,
@@ -258,7 +258,7 @@ fn file_path(state: &AppState, relative: &str) -> AppResult<PathBuf> {
 }
 
 /// Isi file sebagai data URL untuk ditampilkan atau dicetak.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn nota_file_data(state: State<'_, AppState>, id: String) -> AppResult<String> {
 	let (relative, mime, _) = state
 		.app_db()
@@ -268,7 +268,7 @@ pub fn nota_file_data(state: State<'_, AppState>, id: String) -> AppResult<Strin
 	Ok(format!("data:{mime};base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes)))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn nota_file_delete(state: State<'_, AppState>, id: String) -> AppResult<()> {
 	let id = validate_ref(&id)?;
 	let db = state.app_db();

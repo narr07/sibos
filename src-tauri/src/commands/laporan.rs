@@ -30,7 +30,7 @@ pub(crate) fn load_summary(state: &AppState, year: i32, start: u32, end: u32, fu
 }
 
 /// Ringkasan keuangan periode: dasar SPTJM, BA Rekonsiliasi, dan K7.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn period_summary(state: State<'_, AppState>, year: i32, start: u32, end: u32, fund: Option<i64>) -> AppResult<PeriodSummary> {
 	let year = validate_year(year)?;
 	let (start, end) = validate_range(start, end)?;
@@ -38,7 +38,7 @@ pub fn period_summary(state: State<'_, AppState>, year: i32, start: u32, end: u3
 }
 
 /// Ringkasan per sumber dana (kolom-kolom laporan K7).
-#[tauri::command]
+#[tauri::command(async)]
 pub fn period_summary_by_fund(
 	state: State<'_, AppState>,
 	year: i32,
@@ -79,7 +79,7 @@ pub struct RekonBank {
 	pub months: Vec<RekonBankMonth>,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn rekon_bank(state: State<'_, AppState>, year: i32, fund: Option<i64>) -> AppResult<RekonBank> {
 	let year = validate_year(year)?;
 	let fund = fund_opt(fund);
@@ -110,7 +110,7 @@ pub fn rekon_bank(state: State<'_, AppState>, year: i32, fund: Option<i64>) -> A
 	Ok(RekonBank { year, fund, saldo_awal_bank: summary.saldo_awal_bank, months })
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn bank_statement_set(
 	state: State<'_, AppState>,
 	year: i32,
@@ -143,7 +143,7 @@ pub struct RegisterKas {
 	pub pajak_belum_disetor: i64,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn register_kas_get(state: State<'_, AppState>, year: i32, month: u32, fund: Option<i64>) -> AppResult<RegisterKas> {
 	let year = validate_year(year)?;
 	let (month, _) = validate_range(month, month)?;
@@ -168,7 +168,7 @@ pub fn register_kas_get(state: State<'_, AppState>, year: i32, month: u32, fund:
 	})
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn register_kas_set(state: State<'_, AppState>, year: i32, month: u32, fund: Option<i64>, value: CashRegister) -> AppResult<()> {
 	let year = validate_year(year)?;
 	let (month, _) = validate_range(month, month)?;
@@ -178,12 +178,12 @@ pub fn register_kas_set(state: State<'_, AppState>, year: i32, month: u32, fund:
 	state.app_db().cash_register_set(year, month, fund_opt(fund).unwrap_or(0), &value)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn manual_tax_list(state: State<'_, AppState>, year: i32) -> AppResult<Vec<ManualTax>> {
 	state.app_db().manual_taxes(validate_year(year)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn manual_tax_save(state: State<'_, AppState>, entry: ManualTax) -> AppResult<String> {
 	let mut entry = entry;
 	entry.tahun = validate_year(entry.tahun)?;
@@ -193,7 +193,7 @@ pub fn manual_tax_save(state: State<'_, AppState>, entry: ManualTax) -> AppResul
 	state.app_db().manual_tax_save(&entry)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn manual_tax_delete(state: State<'_, AppState>, id: String) -> AppResult<()> {
 	let id = id.trim();
 	if id.is_empty() || id.len() > 64 {

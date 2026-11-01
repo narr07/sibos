@@ -128,8 +128,8 @@
 					<DokumenKanvasEditor v-model="draft.data" :vars="tampilIsi ? kanvasVars : null" :items="tampilIsi ? sample?.items : undefined" />
 				</template>
 
-				<div v-for="(b, i) in (isKanvas ? [] : draft.data.blocks)" :key="b.id" class="rounded-md border border-default">
-					<div class="flex items-center gap-1 px-2 py-1.5 bg-elevated/60 rounded-t-md">
+				<div v-for="(b, i) in (isKanvas ? [] : draft.data.blocks)" :key="b.id" class="border border-default">
+					<div class="flex items-center gap-1 px-2 py-1.5 bg-elevated/60">
 						<UButton
 							color="neutral"
 							variant="ghost"
@@ -177,7 +177,7 @@
 					</p>
 					<USelectMenu v-model="sampleKey" :items="sampleItems" value-key="value" size="sm" class="flex-1 min-w-0" placeholder="Pilih contoh nota" />
 				</div>
-				<div class="overflow-auto rounded-md bg-elevated p-3 max-h-[calc(100vh-12rem)]">
+				<div class="overflow-auto bg-elevated p-3 max-h-[calc(100vh-12rem)]">
 					<div v-if="sample" class="origin-top-left" :style="{ transform: `scale(${zoom})`, width: `${100 / zoom}%` }">
 						<PrintDocRender :template="draft.data" :g="sample" :penyedia="penyediaFor(sample)" :urut="urutan[sample.key] ?? 1" />
 					</div>
@@ -280,7 +280,7 @@
 	// Export/Import file template (.json) agar bisa dibagikan ke sekolah lain atau dipindah antarkomputer.
 	const exportTemplates = async (ids: string[], nama: string) => {
 		try {
-			const path = await useTauriDialogSave({ defaultPath: `${fileSafe(nama)}.json`, filters: [{ name: "Template SIBOS", extensions: ["json"] }] });
+			const path = await useTauriDialogSave({ defaultPath: `${fileSafe(nama)}.json`, filters: [{ name: "Template Lajur", extensions: ["json"] }] });
 			if (!path) return;
 			const n = await api.docTemplateExport(ids, path);
 			toast.add({ title: `${n} template diekspor`, description: path, color: "success" });
@@ -290,7 +290,7 @@
 	};
 	const importTemplates = async () => {
 		try {
-			const path = await useTauriDialogOpen({ multiple: false, directory: false, filters: [{ name: "Template SIBOS", extensions: ["json"] }] });
+			const path = await useTauriDialogOpen({ multiple: false, directory: false, filters: [{ name: "Template Lajur", extensions: ["json"] }] });
 			if (typeof path !== "string") return;
 			const n = await api.docTemplateImport(path);
 			toast.add({ title: `${n} template diimpor`, description: "Template lama tidak ditimpa; nama yang sama diberi akhiran (impor).", color: "success" });
@@ -304,7 +304,7 @@
 		return [
 			[
 				...(current ? [{ label: `Export "${current.nama}"`, icon: "i-lucide-file-down", onSelect: () => exportTemplates([current.id], `Template_${current.nama}`) }] : []),
-				{ label: "Export semua template", icon: "i-lucide-files", disabled: !templates.value.length, onSelect: () => exportTemplates([], "Template_SIBOS") }
+				{ label: "Export semua template", icon: "i-lucide-files", disabled: !templates.value.length, onSelect: () => exportTemplates([], "Template_Lajur") }
 			],
 			[{ label: "Import dari file...", icon: "i-lucide-file-up", onSelect: importTemplates }]
 		];

@@ -61,7 +61,7 @@
 				sticky
 				empty="Tidak ada item."
 				:meta="{ class: { tr: (row) => row.original.luar ? 'bg-warning/5' : '' } }"
-				class="min-h-60 flex-1 border border-default rounded-md"
+				class="min-h-60 flex-1 border border-default"
 				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
 			>
 				<template #kegiatan-cell="{ row }">

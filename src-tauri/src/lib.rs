@@ -119,6 +119,7 @@ pub fn run() {
 			commands::siplah::siplah_toko_delete,
 			commands::siplah::siplah_produk_list,
 			commands::siplah::siplah_sync_products,
+			commands::siplah::siplah_sync_cancel,
 			commands::siplah::siplah_match_prices,
 			commands::siplah::siplah_export_match_xlsx,
 		])

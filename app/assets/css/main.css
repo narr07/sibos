@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* Identitas Lajur: semua sudut siku. Radius Nuxt UI (dan token rounded-xs..3xl turunannya) = 0 */
+:root {
+	--ui-radius: 0rem;
+}
+
 /* Warna teks. Mode terang dibuat satu tingkat lebih gelap dari bawaan Nuxt UI agar lebih jelas dibaca */
 :root,
 .light {

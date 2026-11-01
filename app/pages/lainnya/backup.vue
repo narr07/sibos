@@ -5,11 +5,11 @@
 				<UCard>
 					<template #header>
 						<p class="font-medium flex items-center gap-2">
-							<UIcon name="i-lucide-database-backup" class="size-4" /> Backup data SIBOS
+							<UIcon name="i-lucide-database-backup" class="size-4" /> Backup data Lajur
 						</p>
 					</template>
 					<p class="text-sm text-muted mb-3">
-						Satu file <code>.sibos</code> berisi semua data SIBOS: pengaturan, uraian yang diubah, gabungan bukti,
+						Satu file <code>.sibos</code> berisi semua data Lajur: pengaturan, uraian yang diubah, gabungan bukti,
 						pajak manual, register kas, rekening koran, draft RKAS, dan foto nota.
 					</p>
 					<UButton icon="i-lucide-save" :loading="busy" @click="backup">
@@ -24,7 +24,7 @@
 						</p>
 					</template>
 					<p class="text-sm text-muted mb-3">
-						Data SIBOS sekarang ditimpa isi backup. Sebelum itu SIBOS otomatis membuat backup data saat ini.
+						Data Lajur sekarang ditimpa isi backup. Sebelum itu Lajur otomatis membuat backup data saat ini.
 					</p>
 					<UButton color="warning" variant="outline" icon="i-lucide-folder-open" :loading="busy" @click="pickRestore">
 						Pilih file backup
@@ -94,7 +94,7 @@
 		<UModal v-model:open="restoreOpen" title="Pulihkan backup?" :description="restoreInfo ? `Backup ${restoreInfo.manifest.sekolah ?? ''} tanggal ${restoreInfo.manifest.createdAt}, ${restoreInfo.manifest.notaFiles} foto nota.` : ''">
 			<template #body>
 				<p class="text-sm">
-					Semua data SIBOS saat ini akan diganti isi backup ini. Data saat ini dibackup otomatis ke folder <code>backups</code> sebelum dipulihkan.
+					Semua data Lajur saat ini akan diganti isi backup ini. Data saat ini dibackup otomatis ke folder <code>backups</code> sebelum dipulihkan.
 					Database ARKAS tidak terpengaruh.
 				</p>
 			</template>
@@ -133,8 +133,8 @@
 	};
 
 	const backup = () => saver.save({
-		defaultName: `SIBOS_Backup_${stamp()}.sibos`,
-		filters: [{ name: "Backup SIBOS", extensions: ["sibos"] }],
+		defaultName: `Lajur_Backup_${stamp()}.sibos`,
+		filters: [{ name: "Backup Lajur", extensions: ["sibos"] }],
 		run: async (path) => (await api.backupCreate(path)).path,
 		success: "Backup tersimpan"
 	});
@@ -153,7 +153,7 @@
 	};
 
 	const pickRestore = async () => {
-		const picked = await useTauriDialogOpen({ multiple: false, filters: [{ name: "Backup SIBOS", extensions: ["sibos"] }] });
+		const picked = await useTauriDialogOpen({ multiple: false, filters: [{ name: "Backup Lajur", extensions: ["sibos"] }] });
 		if (typeof picked !== "string") return;
 		try {
 			restoreInfo.value = await api.backupInspect(picked);

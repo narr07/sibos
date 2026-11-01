@@ -83,7 +83,7 @@
 					<template #description>
 						<ul class="list-disc pl-4">
 							<li v-for="c in mismatches" :key="`${c.month}-${c.fundId}`">
-								{{ BULAN[c.month - 1] }} ({{ c.fundName }}): SIBOS bank {{ rupiah(c.computedBank) }}, tunai {{ rupiah(c.computedTunai) }} · ARKAS bank {{ rupiah(c.arkasBank) }}, tunai {{ rupiah(c.arkasTunai) }}
+								{{ BULAN[c.month - 1] }} ({{ c.fundName }}): Lajur bank {{ rupiah(c.computedBank) }}, tunai {{ rupiah(c.computedTunai) }} · ARKAS bank {{ rupiah(c.arkasBank) }}, tunai {{ rupiah(c.arkasTunai) }}
 							</li>
 						</ul>
 					</template>
@@ -108,7 +108,7 @@
 				:columns="columns"
 				:loading="loading"
 				sticky
-				class="min-h-60 flex-1 border border-default rounded-md"
+				class="min-h-60 flex-1 border border-default"
 				:ui="{ td: 'py-1.5 text-sm align-top', th: 'py-2 text-xs' }"
 			>
 				<template #noBukti-cell="{ row }">
@@ -149,7 +149,7 @@
 			</UTable>
 		</div>
 
-		<UModal v-model:open="editOpen" title="Ubah uraian tampilan" description="Hanya mengubah tampilan dan cetakan SIBOS. Data ARKAS tidak berubah.">
+		<UModal v-model:open="editOpen" title="Ubah uraian tampilan" description="Hanya mengubah tampilan dan cetakan Lajur. Data ARKAS tidak berubah.">
 			<template #body>
 				<div class="space-y-3">
 					<p class="text-xs text-muted">

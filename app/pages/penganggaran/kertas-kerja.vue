@@ -58,7 +58,7 @@
 				sticky
 				empty="Tidak ada item RKAS."
 				:meta="{ class: { tr: (row) => row.original.item ? '' : row.depth === 0 ? 'bg-elevated/70 font-semibold' : 'font-medium' } }"
-				class="min-h-60 flex-1 border border-default rounded-md"
+				class="min-h-60 flex-1 border border-default"
 				:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs', tfoot: 'bg-elevated font-semibold' }"
 			/>
 		</div>

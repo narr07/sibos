@@ -33,6 +33,19 @@ pub fn timestamp() -> String {
 	format!("{y:04}{m:02}{d:02}-{hh:02}{mm:02}{ss:02}")
 }
 
+/// Nama file unik `<prefix>-<pid>-<nanodetik>-<urutan>.<ext>`. Command berjalan bersamaan
+/// (async), jadi nama berbasis detik saja bisa bertabrakan.
+pub fn unique_name(prefix: &str, ext: &str) -> String {
+	use std::sync::atomic::{AtomicU64, Ordering};
+	static COUNTER: AtomicU64 = AtomicU64::new(0);
+	let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+	let nanos = std::time::SystemTime::now()
+		.duration_since(std::time::UNIX_EPOCH)
+		.map(|d| d.as_nanos())
+		.unwrap_or(0);
+	format!("{prefix}-{}-{nanos}-{n}.{ext}", std::process::id())
+}
+
 /// "2026-10-04 15:30:12".
 pub fn datetime_text() -> String {
 	let (y, m, d, hh, mm, ss) = now_wib();
@@ -49,5 +62,10 @@ mod tests {
 		assert_eq!(civil_from_days(19_723), (2024, 1, 1));
 		assert_eq!(civil_from_days(19_782), (2024, 2, 29));
 		assert_eq!(timestamp().len(), 15);
+	}
+
+	#[test]
+	fn unique_names_differ() {
+		assert_ne!(unique_name("x", "db"), unique_name("x", "db"));
 	}
 }

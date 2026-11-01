@@ -18,12 +18,12 @@ fn validate_key(key: &str) -> AppResult<&str> {
 	}
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn settings_get(state: State<'_, AppState>, key: String) -> AppResult<Option<Value>> {
 	state.app_db().setting_get(validate_key(&key)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn settings_set(state: State<'_, AppState>, key: String, value: Value) -> AppResult<()> {
 	state.app_db().setting_set(validate_key(&key)?, &value)
 }
@@ -36,7 +36,7 @@ pub struct AppInfo {
 	pub data_dir: String,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn app_info(app: AppHandle, state: State<'_, AppState>) -> AppResult<AppInfo> {
 	let data_dir = app.path().app_data_dir().map(|p| p.display().to_string()).unwrap_or_default();
 	Ok(AppInfo {
@@ -47,7 +47,7 @@ pub fn app_info(app: AppHandle, state: State<'_, AppState>) -> AppResult<AppInfo
 }
 
 /// Pengaturan dokumen: yang tersimpan, bawaan dari ARKAS, dan gabungannya.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn pengaturan_get(state: State<'_, AppState>, year: Option<i32>) -> AppResult<PengaturanView> {
 	let year = year.map(validate_year).transpose()?;
 	let school = state.with_arkas(|db| queries::school_info(db, year)).unwrap_or_default();
@@ -57,7 +57,7 @@ pub fn pengaturan_get(state: State<'_, AppState>, year: Option<i32>) -> AppResul
 	Ok(PengaturanView { tersimpan, bawaan, efektif })
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn pengaturan_set(state: State<'_, AppState>, value: Pengaturan) -> AppResult<()> {
 	pengaturan::validate(&value)?;
 	let json = serde_json::to_value(&value).map_err(|e| AppError::InvalidInput(e.to_string()))?;

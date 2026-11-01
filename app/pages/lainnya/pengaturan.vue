@@ -12,7 +12,7 @@
 				color="neutral"
 				variant="subtle"
 				title="Isian otomatis diambil dari ARKAS dan tetap bisa diubah manual."
-				description="Kolom bertanda ARKAS mengikuti data ARKAS terbaru. Yang diubah manual disimpan di SIBOS; data ARKAS tidak diubah."
+				description="Kolom bertanda ARKAS mengikuti data ARKAS terbaru. Yang diubah manual disimpan di Lajur; data ARKAS tidak diubah."
 			/>
 
 			<UCard>
@@ -40,7 +40,7 @@
 				<p class="text-xs text-muted mb-2">
 					Pratinjau kop (dipakai di SP, Bukti Pengeluaran, SPTJM, BA, dan template berkop sekolah):
 				</p>
-				<div class="rounded-md border border-default bg-white text-black p-4 mb-4 overflow-x-auto">
+				<div class="border border-default bg-white text-black p-4 mb-4 overflow-x-auto">
 					<div class="min-w-[170mm]">
 						<PrintKopSurat :kop="previewKop" />
 					</div>
@@ -56,7 +56,7 @@
 					</div>
 					<UFormField v-for="side in logoSides" :key="side.key" :label="side.label" :hint="side.hint">
 						<div class="flex flex-col items-center gap-2">
-							<div class="size-28 rounded-md border-2 border-dashed border-default flex items-center justify-center bg-white">
+							<div class="size-28 border-2 border-dashed border-default flex items-center justify-center bg-white">
 								<img v-if="form.kop[side.key]" :src="form.kop[side.key]" alt="" class="max-w-full max-h-full object-contain">
 								<span v-else class="text-xs text-muted text-center px-2">Persegi 1:1, otomatis diratakan tengah</span>
 							</div>

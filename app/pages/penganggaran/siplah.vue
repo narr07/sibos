@@ -27,7 +27,7 @@
 
 		<div v-else class="grid lg:grid-cols-[19rem_minmax(0,1fr)] gap-4 min-w-0 w-full flex-1 min-h-0">
 			<!-- Panel Kiri: Daftar Toko Tersimpan -->
-			<div class="flex flex-col w-full min-w-0 shrink-0 gap-3 border border-default rounded-lg p-3 bg-elevated/40">
+			<div class="flex flex-col w-full min-w-0 shrink-0 gap-3 border border-default p-3 bg-elevated/40">
 				<div class="flex items-center justify-between">
 					<span class="text-sm font-semibold text-highlighted">Toko SIPLah Tersimpan</span>
 					<UBadge color="neutral" variant="subtle">
@@ -44,8 +44,8 @@
 				/>
 
 				<div v-if="loadingToko" class="space-y-2 py-4">
-					<USkeleton class="h-16 w-full rounded-md" />
-					<USkeleton class="h-16 w-full rounded-md" />
+					<USkeleton class="h-16 w-full" />
+					<USkeleton class="h-16 w-full" />
 				</div>
 
 				<div v-else-if="filteredTokoList.length === 0" class="py-8 text-center text-xs text-muted">
@@ -62,12 +62,12 @@
 					<div
 						v-for="t in filteredTokoList"
 						:key="t.id"
-						class="p-2.5 rounded-md border transition-colors cursor-pointer text-left"
+						class="p-2.5 border transition-colors cursor-pointer text-left"
 						:class="selectedTokoId === t.id ? 'border-primary bg-primary/5 shadow-xs' : 'border-default bg-elevated hover:bg-neutral-500/5'"
 						@click="pilihToko(t)"
 					>
 						<div class="flex items-start gap-2.5">
-							<div class="size-9 rounded-md bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
+							<div class="size-9 bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden">
 								<img
 									v-if="t.gambar"
 									:src="t.gambar"
@@ -105,14 +105,14 @@
 					icon="i-lucide-store"
 					title="Pilih Toko SIPLah"
 					description="Pilih toko dari daftar di sebelah kiri atau tambah toko baru menggunakan link toko SIPLah."
-					class="py-20 my-auto border border-default rounded-lg"
+					class="py-20 my-auto border border-default"
 				/>
 
 				<div v-else class="flex min-h-0 flex-1 flex-col gap-4 min-w-0 w-full">
 					<!-- Kartu Profil Toko Aktif -->
-					<div class="p-4 border border-default rounded-lg bg-elevated/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+					<div class="p-4 border border-default bg-elevated/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 						<div class="flex items-start gap-3.5 min-w-0">
-							<div class="size-14 rounded-lg bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-default">
+							<div class="size-14 bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-default">
 								<img
 									v-if="selectedToko.gambar"
 									:src="selectedToko.gambar"
@@ -152,7 +152,18 @@
 								:loading="syncing"
 								@click="sinkronkanProduk(selectedToko.id)"
 							>
-								Sinkronkan Produk
+								{{ syncing && progressLabel ? progressLabel : "Sinkronkan Produk" }}
+							</UButton>
+							<UButton
+								v-if="syncing"
+								icon="i-lucide-x"
+								color="neutral"
+								variant="outline"
+								size="sm"
+								:disabled="cancelling"
+								@click="batalkanSinkron"
+							>
+								{{ cancelling ? "Membatalkan..." : "Batalkan" }}
 							</UButton>
 							<UButton
 								icon="i-lucide-external-link"
@@ -222,7 +233,7 @@
 						<template v-else-if="matchReport">
 							<!-- Kartu Ringkasan Metrik -->
 							<div class="grid grid-cols-2 md:grid-cols-4 gap-3 min-w-0 w-full">
-								<div class="p-3 border border-default rounded-md bg-elevated/40">
+								<div class="p-3 border border-default bg-elevated/40">
 									<p class="text-xs text-muted">
 										Item Dibandingkan
 									</p>
@@ -233,7 +244,7 @@
 										{{ matchReport.summary.totalCocok }} ditemukan di toko
 									</p>
 								</div>
-								<div class="p-3 border border-default rounded-md bg-elevated/40">
+								<div class="p-3 border border-default bg-elevated/40">
 									<p class="text-xs text-muted">
 										Lebih Murah (Hemat)
 									</p>
@@ -244,7 +255,7 @@
 										{{ matchReport.summary.totalSesuai }} harga pas
 									</p>
 								</div>
-								<div class="p-3 border border-default rounded-md bg-elevated/40">
+								<div class="p-3 border border-default bg-elevated/40">
 									<p class="text-xs text-muted">
 										Lebih Mahal
 									</p>
@@ -255,7 +266,7 @@
 										{{ matchReport.summary.totalTidakCocok }} belum cocok
 									</p>
 								</div>
-								<div class="p-3 border border-default rounded-md bg-elevated/40">
+								<div class="p-3 border border-default bg-elevated/40">
 									<p class="text-xs text-muted">
 										Selisih Total Belanja
 									</p>
@@ -263,7 +274,7 @@
 										{{ matchReport.summary.totalHemat >= 0 ? `Hemat ${rupiah(matchReport.summary.totalHemat)}` : `Lebih ${rupiah(-matchReport.summary.totalHemat)}` }}
 									</p>
 									<p class="text-xs text-muted mt-0.5">
-										Pagu: {{ rupiah(matchReport.summary.totalAnggaranRkas) }}
+										Dari {{ matchReport.summary.totalCocok }} item cocok (pagu {{ rupiah(matchReport.summary.totalAnggaranCocok) }})
 									</p>
 								</div>
 							</div>
@@ -292,7 +303,7 @@
 							</div>
 
 							<!-- Tabel Pencocokan -->
-							<div class="flex-1 min-h-0 min-w-0 w-full border border-default rounded-md overflow-x-auto">
+							<div class="flex-1 min-h-0 min-w-0 w-full border border-default overflow-x-auto">
 								<UTable
 									:data="filteredMatchItems"
 									:columns="matchColumns"
@@ -337,7 +348,7 @@
 									<template #matchedProduct-cell="{ row }">
 										<div v-if="row.original.matchedProduct" class="max-w-sm">
 											<div class="flex items-start gap-2">
-												<div class="size-8 rounded bg-neutral-500/10 shrink-0 overflow-hidden border border-default mt-0.5">
+												<div class="size-8 bg-neutral-500/10 shrink-0 overflow-hidden border border-default mt-0.5">
 													<img
 														v-if="row.original.matchedProduct.gambar"
 														:src="row.original.matchedProduct.gambar"
@@ -444,7 +455,7 @@
 							</span>
 						</div>
 
-						<div class="flex-1 min-h-0 min-w-0 w-full border border-default rounded-md overflow-x-auto">
+						<div class="flex-1 min-h-0 min-w-0 w-full border border-default overflow-x-auto">
 							<UTable
 								:data="filteredKatalogProduk"
 								:columns="katalogColumns"
@@ -453,7 +464,7 @@
 								:ui="{ td: 'py-2 text-xs', th: 'py-2.5 text-xs font-semibold' }"
 							>
 								<template #gambar-cell="{ row }">
-									<div class="size-10 rounded bg-neutral-500/10 shrink-0 overflow-hidden border border-default">
+									<div class="size-10 bg-neutral-500/10 shrink-0 overflow-hidden border border-default">
 										<img
 											v-if="row.original.gambar"
 											:src="row.original.gambar"
@@ -510,7 +521,7 @@
 			<template #body>
 				<div class="space-y-4">
 					<p class="text-xs text-muted">
-						Masukkan link atau ID toko SIPLah (contoh dari Toko Ladang). Semua produk dari toko akan langsung diambil dan disimpan ke database lokal SIBOS.
+						Masukkan link atau ID toko SIPLah (contoh dari Toko Ladang). Semua produk dari toko akan langsung diambil dan disimpan ke database lokal Lajur.
 					</p>
 
 					<UFormField label="Link Toko SIPLah" hint="URL Toko Ladang">
@@ -547,9 +558,9 @@
 					/>
 
 					<!-- Preview Toko yang Ditemukan -->
-					<div v-if="previewToko" class="p-3 border border-default rounded-lg bg-elevated/60 space-y-2">
+					<div v-if="previewToko" class="p-3 border border-default bg-elevated/60 space-y-2">
 						<div class="flex items-center gap-3">
-							<div class="size-12 rounded-lg bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-default">
+							<div class="size-12 bg-neutral-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-default">
 								<img
 									v-if="previewToko.gambar"
 									:src="previewToko.gambar"
@@ -612,7 +623,7 @@
 						<div
 							v-for="c in activeMatchItem.candidates"
 							:key="c.produk.id"
-							class="p-2 border rounded-md transition-colors cursor-pointer flex items-center justify-between gap-2"
+							class="p-2 border transition-colors cursor-pointer flex items-center justify-between gap-2"
 							:class="activeMatchItem.matchedProduct?.id === c.produk.id ? 'border-primary bg-primary/5' : 'border-default hover:bg-neutral-500/5'"
 							@click="tetapkanProduk(c.produk)"
 						>
@@ -653,7 +664,7 @@
 							<div
 								v-for="p in filteredManualCandidates"
 								:key="p.id"
-								class="p-2 border border-default rounded-md hover:bg-neutral-500/5 cursor-pointer flex items-center justify-between text-xs"
+								class="p-2 border border-default hover:bg-neutral-500/5 cursor-pointer flex items-center justify-between text-xs"
 								@click="tetapkanProduk(p)"
 							>
 								<span class="truncate font-medium text-highlighted">{{ p.nama }}</span>
@@ -677,7 +688,7 @@
 		<UModal v-model:open="modalHapus" title="Hapus Toko SIPLah?">
 			<template #body>
 				<p class="text-sm text-muted">
-					Toko dan semua produk yang tersimpan untuk toko ini akan dihapus dari database lokal SIBOS. Aksi ini tidak dapat dibatalkan.
+					Toko dan semua produk yang tersimpan untuk toko ini akan dihapus dari database lokal Lajur. Aksi ini tidak dapat dibatalkan.
 				</p>
 			</template>
 			<template #footer>
@@ -717,7 +728,6 @@
 
 	const matchReport = ref<SiplahMatchReport | null>(null);
 	const loadingMatch = ref(false);
-	const syncing = ref(false);
 
 	const filterItemSearch = ref("");
 	const filterStatus = ref<string>("semua");
@@ -803,25 +813,12 @@
 		}
 	});
 
-	// Aksi sinkronisasi produk dari SIPLah
-	const sinkronkanProduk = async (tokoId: number) => {
-		syncing.value = true;
-		try {
-			const res = await api.siplahSyncProducts(tokoId);
-			toast.add({
-				title: "Sinkronisasi Berhasil",
-				description: `Berhasil mengambil ${res.total} produk dari SIPLah.`,
-				color: "success"
-			});
-			await loadToko();
-			await loadMatch();
-			await loadKatalog();
-		} catch (err) {
-			toast.add({ title: "Sinkronisasi gagal", description: errorMessage(err), color: "error" });
-		} finally {
-			syncing.value = false;
-		}
-	};
+	// Sinkronisasi produk dari SIPLah (progres per halaman + batal)
+	const { syncing, cancelling, progressLabel, sinkronkan: sinkronkanProduk, batalkan: batalkanSinkron } = useSiplahSync(async () => {
+		await loadToko();
+		await loadMatch();
+		await loadKatalog();
+	});
 
 	const tokoIdHapus = ref<number | null>(null);
 	const modalHapus = ref(false);
@@ -905,13 +902,8 @@
 
 	const tetapkanProduk = (prod: SiplahProduk) => {
 		if (!activeMatchItem.value) return;
-		activeMatchItem.value.matchedProduct = prod;
-		const diff = prod.harga - activeMatchItem.value.hargaRkas;
-		activeMatchItem.value.selisih = diff;
-		activeMatchItem.value.status = diff === 0 ? "sesuai" : (diff < 0 ? "lebih_murah" : "lebih_mahal");
-		activeMatchItem.value.persenSelisih = activeMatchItem.value.hargaRkas > 0
-			? (diff / activeMatchItem.value.hargaRkas) * 100
-			: 0;
+		pasangProduk(activeMatchItem.value, prod);
+		if (matchReport.value) matchReport.value.summary = ringkasanSiplah(matchReport.value.items);
 		modalPilihKandidat.value = false;
 		toast.add({ title: "Produk dicocokkan", description: prod.nama, color: "success" });
 	};

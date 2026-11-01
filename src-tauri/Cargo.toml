@@ -38,6 +38,12 @@ tauri-plugin-window-state = "2"
 thiserror = "2.0.21"
 zip = { version = "8", default-features = false, features = [ "deflate-flate2-zlib-rs" ] }
 
+# `tauri dev`: dependensi (SQLCipher, OpenSSL, rusqlite, dll.) tetap dioptimalkan. Tanpa ini SQLCipher
+# dikompilasi tanpa optimasi sehingga dekripsi ARKAS di setiap query membuat pindah halaman terasa lambat.
+# Kode aplikasi sendiri tetap mode debug agar kompilasi ulang saat mengubah kode tetap cepat.
+[profile.dev.package."*"]
+opt-level = 3
+
 [profile.release]
 opt-level = "s"
 lto = true

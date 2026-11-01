@@ -199,13 +199,21 @@ export interface SiplahMatchSummary {
 	totalLebihMurah: number
 	totalLebihMahal: number
 	totalAnggaranRkas: number
+	/** Pagu item yang punya produk cocok saja (pembanding setara untuk totalEstimasiToko). */
+	totalAnggaranCocok: number
 	totalEstimasiToko: number
+	/** totalAnggaranCocok - totalEstimasiToko: positif berarti toko lebih murah. */
 	totalHemat: number
+	/** Harga toko untuk item yang cocok + pagu untuk yang tidak cocok. */
+	totalPerkiraan: number
 }
+
+/** Sumber item yang dicocokkan: kertas kerja ARKAS, standar harga ARKAS, atau draft RKAS lokal. */
+export type SiplahSourceMode = "rkas" | "standar_harga" | "draft";
 
 export interface SiplahMatchReport {
 	toko: SiplahToko
-	sourceMode: "rkas" | "standar_harga"
+	sourceMode: SiplahSourceMode
 	year: number
 	month?: number | null
 	fundId?: number | null
@@ -218,6 +226,13 @@ export interface SiplahSyncResult {
 	tokoId: number
 	total: number
 	terakhirSync: string
+}
+
+/** Payload event `siplah-sync-progress`: dikirim tiap satu halaman produk selesai diambil. */
+export interface SiplahSyncProgress {
+	tokoId: number
+	halaman: number
+	produk: number
 }
 
 export interface ApiError {
@@ -340,23 +355,25 @@ export const api = {
 	siplahProdukList: (tokoId: number, keyword?: string) =>
 		call<SiplahProduk[]>("siplah_produk_list", { tokoId, keyword: keyword ?? null }),
 	siplahSyncProducts: (tokoId: number) => call<SiplahSyncResult>("siplah_sync_products", { tokoId }),
+	siplahSyncCancel: () => call<void>("siplah_sync_cancel"),
 	siplahMatchPrices: (
 		year: number,
 		tokoId: number,
-		sourceMode: "rkas" | "standar_harga",
+		sourceMode: SiplahSourceMode,
 		month?: number | null,
 		fund?: number | null,
-		onlyUnspent?: boolean | null
-	) => call<SiplahMatchReport>("siplah_match_prices", { year, tokoId, sourceMode, month: month ?? null, fund: fund ?? null, onlyUnspent: onlyUnspent ?? null }),
+		onlyUnspent?: boolean | null,
+		draftId?: string | null
+	) => call<SiplahMatchReport>("siplah_match_prices", { year, tokoId, sourceMode, month: month ?? null, fund: fund ?? null, onlyUnspent: onlyUnspent ?? null, draftId: draftId ?? null }),
 	siplahExportMatchXlsx: (
 		year: number,
 		tokoId: number,
-		sourceMode: "rkas" | "standar_harga",
+		sourceMode: Exclude<SiplahSourceMode, "draft">,
 		path: string,
 		month?: number | null,
 		fund?: number | null,
 		onlyUnspent?: boolean | null
-	) => call<string>("siplah_export_match_xlsx", { year, tokoId, sourceMode, month: month ?? null, fund: fund ?? null, onlyUnspent: onlyUnspent ?? null, path }),
+	) => call<string>("siplah_export_match_xlsx", { year, tokoId, sourceMode, month: month ?? null, fund: fund ?? null, onlyUnspent: onlyUnspent ?? null, draftId: null, path }),
 
 	// Export & backup
 	exportKertasKerjaXlsx: (year: number, fund: number | null, search: string, start: number, end: number, judul: string, triwulan: boolean, lembar: boolean, path: string) =>

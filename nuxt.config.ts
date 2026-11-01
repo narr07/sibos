@@ -10,7 +10,7 @@ export default defineNuxtConfig({
 	],
 	app: {
 		head: {
-			title: "SIBOS",
+			title: "Lajur",
 			charset: "utf-8",
 			htmlAttrs: { lang: "id" },
 			link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],

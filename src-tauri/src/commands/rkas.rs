@@ -28,7 +28,7 @@ pub(crate) fn prefixes(kode: &str) -> Vec<String> {
 	(1..=parts.len()).map(|n| format!("{}.", parts[..n].join("."))).collect()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn kertas_kerja(state: State<'_, AppState>, year: i32, fund: Option<i64>) -> AppResult<KertasKerja> {
 	let year = validate_year(year)?;
 	let fund = fund.filter(|f| *f != 0);
@@ -61,7 +61,7 @@ pub(crate) fn load_realisasi(state: &AppState, year: i32, upto: u32, fund: Optio
 	Ok(build_realisasi(year, upto, fund, &input))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn realisasi(state: State<'_, AppState>, year: i32, upto: Option<u32>, fund: Option<i64>) -> AppResult<Realisasi> {
 	let year = validate_year(year)?;
 	let upto = upto.unwrap_or(12);
@@ -71,7 +71,7 @@ pub fn realisasi(state: State<'_, AppState>, year: i32, upto: Option<u32>, fund:
 	load_realisasi(&state, year, upto, fund.filter(|f| *f != 0))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn standar_harga_search(state: State<'_, AppState>, year: i32, keyword: String) -> AppResult<Vec<StandarHarga>> {
 	let year = validate_year(year)?;
 	let keyword = keyword.trim();
@@ -103,7 +103,7 @@ pub struct Dashboard {
 	pub pajak_belum_disetor: i64,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn dashboard(state: State<'_, AppState>, year: i32, fund: Option<i64>) -> AppResult<Dashboard> {
 	let year = validate_year(year)?;
 	let fund = fund.filter(|f| *f != 0);

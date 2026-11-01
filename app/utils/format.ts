@@ -10,6 +10,10 @@ const rupiahFormat = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }
 /** 1234567 -> "1.234.567" (tanpa "Rp", untuk kolom tabel). */
 export const angka = (n: number) => rupiahFormat.format(n);
 
+/** Volume RKAS: bilangan bulat apa adanya, pecahan maksimal 2 desimal ("2,5"). */
+export const formatVolume = (vol: number): string =>
+	Number.isInteger(vol) ? String(vol) : vol.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+
 /** 1234567 -> "Rp 1.234.567". */
 export const rupiah = (n: number) => (n < 0 ? `-Rp ${angka(-n)}` : `Rp ${angka(n)}`);
 

@@ -39,7 +39,7 @@
 					color="neutral"
 					variant="subtle"
 					title="Data yang tidak ada di ARKAS untuk dokumen (SP, Nota, Kwitansi, BA)."
-					description="Kolom kosong memakai data ARKAS (alamat, telepon, NPWP). Data ini tersimpan di SIBOS."
+					description="Kolom kosong memakai data ARKAS (alamat, telepon, NPWP). Data ini tersimpan di Lajur."
 				/>
 				<UCard>
 					<template #header>
@@ -74,7 +74,7 @@
 						</UFormField>
 						<UFormField label="Logo toko" class="sm:col-span-2">
 							<div class="flex items-center gap-3">
-								<img v-if="form.logo" :src="form.logo" alt="Logo" class="h-14 border border-default rounded">
+								<img v-if="form.logo" :src="form.logo" alt="Logo" class="h-14 border border-default">
 								<UFileUpload v-slot="{ open }" accept="image/*" reset :preview="false" @update:model-value="uploadLogo">
 									<UButton size="sm" color="neutral" variant="outline" icon="i-lucide-image-up" @click="open()">
 										Pilih logo

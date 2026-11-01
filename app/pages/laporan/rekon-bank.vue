@@ -14,7 +14,7 @@
 				color="neutral"
 				variant="subtle"
 				title="Isi saldo rekening koran tiap akhir bulan. Selisih dengan saldo bank di BKU dihitung otomatis."
-				description="Saldo rekening koran disimpan di SIBOS."
+				description="Saldo rekening koran disimpan di Lajur."
 			/>
 			<UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-triangle-alert" :title="error" />
 
@@ -22,7 +22,7 @@
 				v-if="data"
 				:data="data.months"
 				:columns="columns"
-				class="border border-default rounded-md"
+				class="border border-default"
 				:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
 			>
 				<template #rekeningKoran-cell="{ row }">

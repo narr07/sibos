@@ -8,7 +8,7 @@
 			:square="collapsed"
 			class="justify-start"
 		>
-			<span class="size-2.5 rounded-full shrink-0" :class="dotClass" />
+			<span class="size-2.5 shrink-0" :class="dotClass" />
 			<span v-if="!collapsed" class="min-w-0 text-left">
 				<span class="block text-sm font-medium truncate">{{ label }}</span>
 				<span v-if="school?.nama" class="block text-xs text-muted truncate">{{ school.nama }}</span>

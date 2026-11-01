@@ -3,12 +3,12 @@
 		v-model:open="open"
 		:dismissible="!installing"
 		:close="!installing"
-		:title="update ? `SIBOS ${update.version} tersedia` : 'Pembaruan SIBOS'"
+		:title="update ? `Lajur ${update.version} tersedia` : 'Pembaruan Lajur'"
 		:description="update ? `Versi terpasang ${update.currentVersion}${update.date ? ` · dirilis ${tanggalRilis}` : ''}` : ''"
 	>
 		<template #body>
 			<div class="space-y-3">
-				<div v-if="update?.body" class="max-h-64 overflow-auto rounded-md bg-elevated p-3 text-sm whitespace-pre-wrap">
+				<div v-if="update?.body" class="max-h-64 overflow-auto bg-elevated p-3 text-sm whitespace-pre-wrap">
 					{{ update.body }}
 				</div>
 				<p v-else class="text-sm text-muted">
@@ -17,12 +17,12 @@
 				<template v-if="installing">
 					<UProgress :model-value="progress || null" />
 					<p class="text-xs text-muted">
-						{{ progress < 100 ? `Mengunduh pembaruan... ${progress}%` : "Memasang pembaruan, SIBOS akan dibuka kembali." }}
+						{{ progress < 100 ? `Mengunduh pembaruan... ${progress}%` : "Memasang pembaruan, Lajur akan dibuka kembali." }}
 					</p>
 				</template>
 				<UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-triangle-alert" title="Pembaruan gagal" :description="error" />
 				<p class="text-xs text-muted">
-					Data SIBOS dan koneksi ARKAS tetap aman; pembaruan hanya mengganti program.
+					Data Lajur dan koneksi ARKAS tetap aman; pembaruan hanya mengganti program.
 				</p>
 			</div>
 		</template>

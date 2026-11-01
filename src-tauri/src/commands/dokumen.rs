@@ -14,12 +14,12 @@ fn validate_id(id: &str) -> AppResult<&str> {
 	Ok(id)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn doc_template_list(state: State<'_, AppState>) -> AppResult<Vec<DocTemplate>> {
 	state.app_db().doc_templates()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn doc_template_save(state: State<'_, AppState>, template: DocTemplate) -> AppResult<String> {
 	if !template.id.is_empty() {
 		validate_id(&template.id)?;
@@ -27,7 +27,7 @@ pub fn doc_template_save(state: State<'_, AppState>, template: DocTemplate) -> A
 	state.app_db().doc_template_save(&template)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn doc_template_delete(state: State<'_, AppState>, id: String) -> AppResult<()> {
 	state.app_db().doc_template_delete(validate_id(&id)?)
 }
@@ -43,7 +43,7 @@ struct TemplateFile {
 }
 
 /// Simpan template terpilih (atau semua bila `ids` kosong) ke file JSON.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn doc_template_export(state: State<'_, AppState>, ids: Vec<String>, path: String) -> AppResult<usize> {
 	let all = state.app_db().doc_templates()?;
 	let templates: Vec<DocTemplate> = all
@@ -62,13 +62,13 @@ pub fn doc_template_export(state: State<'_, AppState>, ids: Vec<String>, path: S
 
 /// Tambahkan template dari file JSON hasil export. Template lama tidak ditimpa;
 /// nama yang sudah ada diberi akhiran "(impor)".
-#[tauri::command]
+#[tauri::command(async)]
 pub fn doc_template_import(state: State<'_, AppState>, path: String) -> AppResult<usize> {
 	let text = std::fs::read_to_string(&path)?;
 	let file: TemplateFile = serde_json::from_str(&text)
-		.map_err(|_| AppError::InvalidInput("file bukan template SIBOS yang valid".into()))?;
+		.map_err(|_| AppError::InvalidInput("file bukan template Lajur yang valid".into()))?;
 	if file.format != TEMPLATE_FILE_FORMAT {
-		return Err(AppError::InvalidInput("file bukan template SIBOS".into()));
+		return Err(AppError::InvalidInput("file bukan template Lajur".into()));
 	}
 	let db = state.app_db();
 	let existing: Vec<String> = db.doc_templates()?.into_iter().map(|t| t.nama).collect();
@@ -81,17 +81,17 @@ pub fn doc_template_import(state: State<'_, AppState>, path: String) -> AppResul
 	Ok(count)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn penyedia_list(state: State<'_, AppState>) -> AppResult<Vec<Penyedia>> {
 	state.app_db().penyedia_list()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn penyedia_save(state: State<'_, AppState>, penyedia: Penyedia) -> AppResult<()> {
 	state.app_db().penyedia_save(&penyedia)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn penyedia_delete(state: State<'_, AppState>, nama: String) -> AppResult<()> {
 	state.app_db().penyedia_delete(nama.trim())
 }

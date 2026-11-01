@@ -8,7 +8,7 @@
 			</template>
 		</BookView>
 
-		<UModal v-model:open="open" title="Pajak manual" description="Catat pajak yang tidak ada di ARKAS (hutang tahun lalu, pajak terlewat, setoran). Tersimpan di SIBOS, ARKAS tidak berubah." :ui="{ content: 'max-w-4xl' }">
+		<UModal v-model:open="open" title="Pajak manual" description="Catat pajak yang tidak ada di ARKAS (hutang tahun lalu, pajak terlewat, setoran). Tersimpan di Lajur, ARKAS tidak berubah." :ui="{ content: 'max-w-4xl' }">
 			<template #body>
 				<div class="space-y-4">
 					<UForm :state="form" class="grid sm:grid-cols-6 gap-3 items-end" @submit="save">
@@ -48,7 +48,7 @@
 						:columns="taxColumns"
 						sticky
 						empty="Belum ada entri pajak manual."
-						class="max-h-80 border border-default rounded-md"
+						class="max-h-80 border border-default"
 						:ui="{ td: 'py-1.5 text-sm', th: 'py-2 text-xs' }"
 					>
 						<template #uraian-cell="{ row }">

@@ -18,7 +18,7 @@
 							</UBadge>
 						</div>
 						<p class="text-muted mt-1">
-							Sistem Informasi BOS: pendamping ARKAS untuk menyusun SPJ BOSP dengan cepat, rapi, dan aman.
+							Pendamping ARKAS untuk menyusun SPJ BOSP dengan cepat, rapi, dan aman.
 						</p>
 						<div class="flex flex-wrap gap-2 mt-4">
 							<UButton icon="i-lucide-refresh-cw" :loading="checking" @click="periksa">
@@ -26,6 +26,9 @@
 							</UButton>
 							<UButton to="/lainnya/changelog" icon="i-lucide-history" color="neutral" variant="outline">
 								Changelog
+							</UButton>
+							<UButton icon="i-lucide-book-open" color="neutral" variant="outline" @click="buka('https://lajur.web.id')">
+								Panduan · lajur.web.id
 							</UButton>
 							<UButton icon="i-lucide-github" color="neutral" variant="ghost" @click="buka('https://github.com/narr07/sibos')">
 								Kode sumber
@@ -47,7 +50,7 @@
 					<div class="flex flex-col sm:flex-row sm:items-center gap-4">
 						<UUser
 							name="Dinar Permadi"
-							description="@narr07 · Bendahara BOSP & pengembang SIBOS"
+							description="@narr07 · Bendahara BOSP & pengembang Lajur"
 							:avatar="{ alt: 'Dinar Permadi', icon: 'i-lucide-user' }"
 							size="xl"
 							class="flex-1"
@@ -70,7 +73,7 @@
 					Fitur utama
 				</h2>
 				<p class="text-sm text-muted mb-4">
-					Semua data dibaca langsung dari ARKAS; yang dibuat di SIBOS tersimpan terpisah sehingga data ARKAS tidak pernah berubah.
+					Semua data dibaca langsung dari ARKAS; yang dibuat di Lajur tersimpan terpisah sehingga data ARKAS tidak pernah berubah.
 				</p>
 				<UPageGrid class="lg:grid-cols-3 gap-4">
 					<UPageCard
@@ -102,7 +105,7 @@
 			<!-- Info teknis -->
 			<UAccordion
 				:items="[{ label: 'Informasi teknis', icon: 'i-lucide-info', slot: 'teknis' }]"
-				:ui="{ item: 'border border-default rounded-lg px-4' }"
+				:ui="{ item: 'border border-default px-4' }"
 			>
 				<template #teknis>
 					<dl class="grid grid-cols-[9rem_1fr] gap-y-2 text-sm pb-4">
@@ -132,7 +135,7 @@
 			</UAccordion>
 
 			<p class="text-center text-xs text-muted">
-				© 2026 Dinar Permadi · Dirilis dengan lisensi MIT · SIBOS bukan aplikasi resmi Kemendikdasmen
+				© 2026 Dinar Permadi · Dirilis dengan lisensi MIT · Lajur bukan aplikasi resmi Kemendikdasmen
 			</p>
 		</div>
 	</LayoutPageShell>
@@ -154,7 +157,7 @@
 	const periksa = async () => {
 		pesanUpdate.value = "";
 		const ada = await cek();
-		pesanUpdate.value = error.value || (ada ? "" : "SIBOS sudah versi terbaru.");
+		pesanUpdate.value = error.value || (ada ? "" : "Lajur sudah versi terbaru.");
 	};
 
 	/** Tautan luar dibuka di browser bawaan. */
@@ -176,11 +179,11 @@
 		{ icon: "i-lucide-receipt", title: "Pajak Manual", description: "Catat pajak per nota sesuai bukti setor; otomatis masuk Buku Pembantu Pajak.", to: "/penatausahaan/pajak" },
 		{ icon: "i-lucide-file-check", title: "Laporan Dinas", description: "BA Rekonsiliasi, Rekonsiliasi Bank, SPTJM, K7/K7a, dan Register Penutupan Kas.", to: "/laporan/ba-rekon" },
 		{ icon: "i-lucide-pencil-ruler", title: "Penyusun RKAS", description: "Buat draft Perubahan atau Pergeseran untuk simulasi sebelum diinput di ARKAS.", to: "/penganggaran/rkas" },
-		{ icon: "i-lucide-database-backup", title: "Backup & Restore", description: "Cadangkan data SIBOS, backup otomatis, dan salin arkas.db dengan aman.", to: "/lainnya/backup" }
+		{ icon: "i-lucide-database-backup", title: "Backup & Restore", description: "Cadangkan data Lajur, backup otomatis, dan salin arkas.db dengan aman.", to: "/lainnya/backup" }
 	];
 
 	const PRINSIP = [
-		{ icon: "i-lucide-shield-check", title: "ARKAS hanya dibaca", description: "SIBOS tidak pernah mengubah database ARKAS. Semua catatan SIBOS disimpan terpisah." },
+		{ icon: "i-lucide-shield-check", title: "ARKAS hanya dibaca", description: "Lajur tidak pernah mengubah database ARKAS. Semua catatan Lajur disimpan terpisah." },
 		{ icon: "i-lucide-wifi-off", title: "Jalan tanpa internet", description: "Semua fitur bekerja offline. Internet hanya dipakai untuk mengecek pembaruan." },
 		{ icon: "i-lucide-feather", title: "Ringan & cepat", description: "Installer hanya beberapa MB dan langsung memakai data ARKAS di komputer." }
 	];

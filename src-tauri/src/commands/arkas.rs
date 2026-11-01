@@ -81,7 +81,7 @@ fn build_status(state: &AppState, path: Option<&PathBuf>, err: Option<&AppError>
 	}
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn arkas_status(state: State<'_, AppState>) -> AppResult<ConnectionStatus> {
 	let path = resolve_path(&state, None)?;
 	Ok(build_status(&state, path.as_ref(), None))
@@ -89,7 +89,7 @@ pub fn arkas_status(state: State<'_, AppState>) -> AppResult<ConnectionStatus> {
 
 /// Hubungkan ke ARKAS. Path dan kunci opsional: bila kosong dipakai yang tersimpan.
 /// Selalu mengembalikan status (kegagalan dilaporkan lewat field `state`).
-#[tauri::command]
+#[tauri::command(async)]
 pub fn arkas_connect(
 	state: State<'_, AppState>,
 	path: Option<String>,
@@ -131,7 +131,7 @@ pub fn arkas_connect(
 	}
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn arkas_disconnect(state: State<'_, AppState>, forget_key: Option<bool>) -> AppResult<ConnectionStatus> {
 	*state.arkas_guard() = None;
 	if forget_key == Some(true) {
@@ -141,24 +141,24 @@ pub fn arkas_disconnect(state: State<'_, AppState>, forget_key: Option<bool>) ->
 	Ok(build_status(&state, path.as_ref(), None))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn available_years(state: State<'_, AppState>) -> AppResult<Vec<i32>> {
 	state.with_arkas(queries::available_years)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn fund_sources(state: State<'_, AppState>, year: i32) -> AppResult<Vec<queries::FundSource>> {
 	let year = validate_year(year)?;
 	state.with_arkas(|db| queries::fund_sources(db, year))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn school_info(state: State<'_, AppState>, year: Option<i32>) -> AppResult<queries::SchoolInfo> {
 	let year = year.map(validate_year).transpose()?;
 	state.with_arkas(|db| queries::school_info(db, year))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn arkas_schema(state: State<'_, AppState>) -> AppResult<Vec<queries::TableInfo>> {
 	state.with_arkas(queries::schema)
 }

@@ -5,8 +5,8 @@
 				icon="i-lucide-shield-check"
 				color="info"
 				variant="subtle"
-				title="SIBOS hanya membaca database ARKAS"
-				description="Data ARKAS tidak pernah diubah. Semua catatan buatan SIBOS disimpan terpisah di data aplikasi."
+				title="Lajur hanya membaca database ARKAS"
+				description="Data ARKAS tidak pernah diubah. Semua catatan buatan Lajur disimpan terpisah di data aplikasi."
 			/>
 
 			<UAlert
@@ -20,7 +20,7 @@
 			<UCard v-if="connected && school">
 				<template #header>
 					<div class="flex items-center gap-2">
-						<span class="size-2.5 rounded-full bg-success" />
+						<span class="size-2.5 bg-success" />
 						<span class="font-medium">Terhubung</span>
 						<UBadge v-if="status?.usingSnapshot" color="warning" variant="subtle" class="ml-auto">
 							Membaca salinan sementara

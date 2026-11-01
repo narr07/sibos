@@ -40,7 +40,7 @@
 			<div
 				ref="area"
 				tabindex="0"
-				class="overflow-auto rounded-md bg-elevated p-4 max-h-[calc(100vh-14rem)] outline-none focus-visible:ring-2 ring-primary"
+				class="overflow-auto bg-elevated p-4 max-h-[calc(100vh-14rem)] outline-none focus-visible:ring-2 ring-primary"
 				@keydown="onKey"
 				@pointerdown.self="pilih(null)"
 			>
@@ -165,7 +165,7 @@
 					<UFormField v-if="sel.type === 'teks' || sel.type === 'garis' || sel.type === 'kotak'" label="Warna">
 						<UPopover>
 							<UButton color="neutral" variant="outline" size="xs" block class="justify-start">
-								<span class="size-4 rounded-sm ring ring-default" :style="{ backgroundColor: sel.warna }" />
+								<span class="size-4 ring ring-default" :style="{ backgroundColor: sel.warna }" />
 								<span class="font-mono">{{ sel.warna }}</span>
 							</UButton>
 							<template #content>
