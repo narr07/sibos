@@ -9,7 +9,7 @@ interface Rilis {
 	ukuran: number
 }
 
-/** Rilis terbaru SIBOS dari GitHub Releases (dibaca di browser, sekali per kunjungan). */
+/** Rilis terbaru Lajur dari GitHub Releases (dibaca di browser, sekali per kunjungan). */
 export const useRilisTerbaru = () => {
 	const rilis = useState<Rilis | null>("sibos-rilis", () => null);
 

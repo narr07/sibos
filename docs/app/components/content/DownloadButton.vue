@@ -5,7 +5,7 @@
 		icon="i-lucide-download"
 		external
 	>
-		Unduh SIBOS{{ rilis ? ` ${rilis.versi}` : "" }}
+		Unduh Lajur{{ rilis ? ` ${rilis.versi}` : "" }}
 		<span v-if="rilis?.ukuran && !ringkas" class="font-normal opacity-80">· Windows, {{ mb(rilis.ukuran) }}</span>
 	</UButton>
 </template>

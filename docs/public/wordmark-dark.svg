@@ -1,0 +1,5 @@
+<svg fill="#ffffff" xmlns="http://www.w3.org/2000/svg" viewBox="50 20 628 220" width="628" height="220"><title>Lajur</title>
+  
+  <path d="M62 30 H102 V150 H198 V180 H62 Z M62 198 H198 V228 H62 Z" fill="#ffffff"/>
+  <g transform="translate(232 0)"><g fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="square" stroke-linejoin="miter"><path d="M50 40 V170"/><circle cx="117" cy="130" r="40"/><path d="M157 90 V170"/><path d="M204 90 V220 H50"/><path d="M250 90 V130 A40 40 0 0 0 330 130 V90 M330 130 V170"/><path d="M378 170 V90 M378 134 A44 44 0 0 1 422 90"/></g><rect x="192" y="32" width="24" height="24" fill="#ffffff"/></g>
+</svg>

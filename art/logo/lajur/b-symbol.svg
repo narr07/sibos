@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Lajur B: Tiga Lajur</title>
+  <!-- first column + sum line form the L -->
+  <path d="M48 36 H86 V184 H208 V222 H48 Z" fill="#000"/>
+  <!-- two floating ledger columns -->
+  <rect x="109" y="36" width="38" height="128" fill="#000"/>
+  <rect x="170" y="36" width="38" height="128" fill="#000"/>
+</svg>

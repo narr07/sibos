@@ -1,0 +1,28 @@
+{
+	"brand": "Lajur",
+	"tagline": "Pendamping ARKAS untuk SPJ BOSP",
+	"brief": "Aplikasi desktop untuk bendahara sekolah: membaca ARKAS tanpa mengubahnya, lalu menyusun buku kas, laporan, dan bukti SPJ BOSP. Harus terasa tertib, tepercaya, dan lugas, bukan aplikasi bank yang mencolok.",
+	"adjectives": ["tertib", "tepercaya", "lugas", "ringan"],
+	"criteria": "Berhasil bila: menjauhi klise keuangan (perisai, koin, panah naik), terbaca di 16 px, bekerja dalam satu warna, dan bersudut tajam.",
+	"industry": "finance",
+	"nav": ["Fitur", "Unduh", "Panduan"],
+	"brand_color": "#047857",
+	"greyscale": false,
+	"designer": "Dinar Permadi",
+	"round": 2,
+	"concepts": [
+		{
+			"name": "Garis Tutup",
+			"symbol": "final/lajur-symbol.svg",
+			"lockup": "final/lajur-horizontal.svg",
+			"idea": "Huruf L berdiri di atas garis kedua: garis ganda yang menandai buku kas sudah ditutup dan seimbang.",
+			"rationale": [
+				"Konvensi akuntansi yang dikenal setiap bendahara, belum dipakai pesaing",
+				"Wordmark mengulang motifnya: ekor j menjadi garis jumlah di bawah 'la'",
+				"Sudut siku dan satu warna: tegas, mudah dicetak di kop dan stempel"
+			]
+		}
+	],
+	"recommendation": "Garis Tutup: paling sederhana, paling kuat di ukuran kecil, dan langsung bermakna bagi pengguna.",
+	"next_steps": ["Pasang di aplikasi, installer, dan dokumentasi", "Cek merek di PDKI kelas 9 dan 42"]
+}

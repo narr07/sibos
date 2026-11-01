@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Lajur A: Garis Tutup</title>
+  <!-- L: stem 40, horizontals 30 (optically thinner), gap 18 -->
+  <path d="M62 30 H102 V150 H198 V180 H62 Z" fill="#000"/>
+  <rect x="62" y="198" width="136" height="30" fill="#000"/>
+</svg>

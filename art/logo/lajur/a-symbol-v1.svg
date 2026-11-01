@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Lajur A: Garis Tutup</title>
+  <!-- L: stem + foot, weight 32 -->
+  <path d="M70 26 H102 V146 H186 V178 H70 Z" fill="#000"/>
+  <!-- second rule: L foot + this bar = accounting double underline -->
+  <rect x="70" y="196" width="116" height="32" fill="#000"/>
+</svg>

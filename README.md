@@ -1,6 +1,8 @@
-# SIBOS
+# Lajur
 
-Aplikasi desktop pendamping ARKAS untuk menyusun SPJ BOSP: buku kas, buku pembantu, laporan, dan bukti cetak. SIBOS **hanya membaca** database ARKAS; data buatan SIBOS disimpan terpisah.
+Aplikasi desktop pendamping ARKAS untuk menyusun SPJ BOSP: buku kas, buku pembantu, laporan, dan bukti cetak. Lajur **hanya membaca** database ARKAS; data buatan Lajur disimpan terpisah.
+
+Situs, panduan, dan unduhan: **https://lajur.web.id**
 
 Dibangun dengan Tauri 2, Nuxt 4, Nuxt UI, dan Rust.
 
@@ -35,6 +37,7 @@ Build pertama memakan waktu lebih lama (±10 menit) karena OpenSSL dan SQLCipher
 ```bash
 bun run lint
 bun run typecheck
+bun run test           # fungsi format & terbilang di app/utils (test runner bawaan Bun)
 cd src-tauri && cargo test
 ```
 
@@ -42,9 +45,9 @@ cd src-tauri && cargo test
 
 ## Koneksi ARKAS
 
-Saat pertama dibuka, SIBOS mencari `%APPDATA%\Arkas\arkas.db`. Database ARKAS terenkripsi; kuncinya diisi di halaman **Koneksi ARKAS** dan bisa disimpan di Windows Credential Manager. Untuk pengembangan, kunci juga bisa diberikan lewat variabel lingkungan `SIBOS_ARKAS_KEY`.
+Saat pertama dibuka, Lajur mencari `%APPDATA%\Arkas\arkas.db`. Database ARKAS terenkripsi; kuncinya diisi di halaman **Koneksi ARKAS** dan bisa disimpan di Windows Credential Manager. Untuk pengembangan, kunci juga bisa diberikan lewat variabel lingkungan `SIBOS_ARKAS_KEY`.
 
-Data SIBOS sendiri disimpan di `%APPDATA%\id.sibos.app\sibos.db`.
+Data Lajur sendiri disimpan di `%APPDATA%\id.sibos.app\sibos.db`.
 
 ## Struktur
 

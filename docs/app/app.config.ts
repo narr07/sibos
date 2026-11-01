@@ -1,14 +1,23 @@
 export default defineAppConfig({
 	seo: {
-		title: "SIBOS",
+		title: "Lajur",
 		description: "Pendamping ARKAS untuk SPJ BOSP: buku kas, laporan, kwitansi, dan dokumen SPJ langsung dari database ARKAS."
 	},
 	header: {
-		title: "SIBOS",
+		title: "Lajur",
+		// Simbol (persegi) dipakai gambar pratinjau OG; header menampilkan wordmark "L lajur".
+		// Harus SVG: template OG Docus menyisipkan isi file logo sebagai markup SVG.
 		logo: {
-			light: "/logo.png",
-			dark: "/logo.png",
-			alt: "SIBOS"
+			light: "/logo-light.svg",
+			dark: "/logo-dark.svg",
+			alt: "Lajur",
+			display: "wordmark",
+			wordmark: {
+				light: "/wordmark-light.svg",
+				dark: "/wordmark-dark.svg"
+			},
+			favicon: "/favicon.svg",
+			class: "h-7"
 		}
 	},
 	socials: {
@@ -26,7 +35,7 @@ export default defineAppConfig({
 		locale: "id"
 	},
 	ui: {
-		// Sama dengan warna aplikasi SIBOS
+		// Sama dengan warna aplikasi Lajur
 		colors: {
 			primary: "emerald",
 			neutral: "slate"

@@ -1,6 +1,6 @@
 ---
 seo:
-  title: SIBOS, pendamping ARKAS untuk SPJ BOSP
+  title: Lajur, pendamping ARKAS untuk SPJ BOSP
   description: Aplikasi Windows gratis untuk bendahara BOSP. Buku kas, laporan, kwitansi, dan dokumen SPJ langsung dari database ARKAS, tanpa mengubah data ARKAS.
 ---
 
@@ -9,7 +9,7 @@ seo:
 Pendamping ARKAS untuk menyusun [SPJ BOSP]{.text-primary}
 
 #description
-SIBOS membaca database ARKAS di komputer sekolah, lalu menyiapkan buku kas, laporan, kwitansi, dan dokumen SPJ yang tidak tersedia di ARKAS. Data ARKAS hanya dibaca, tidak pernah diubah.
+Lajur membaca database ARKAS di komputer sekolah, lalu menyiapkan buku kas, laporan, kwitansi, dan dokumen SPJ yang tidak tersedia di ARKAS. Data ARKAS hanya dibaca, tidak pernah diubah.
 
 #links
   :download-button
@@ -40,7 +40,7 @@ Semua kebutuhan SPJ dalam satu aplikasi
   ARKAS [hanya dibaca]{.text-primary}
 
   #description
-  SIBOS membuka database ARKAS dalam mode baca saja. Catatan buatan SIBOS disimpan di database terpisah.
+  Lajur membuka database ARKAS dalam mode baca saja. Catatan buatan Lajur disimpan di database terpisah.
   :::
 
   :::u-page-feature

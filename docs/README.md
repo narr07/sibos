@@ -1,6 +1,6 @@
-# Situs SIBOS
+# Situs Lajur
 
-Situs dokumentasi dan unduhan SIBOS di **https://sibos.permadi.dev**, dibuat dengan [Docus](https://docus.dev).
+Situs dokumentasi dan unduhan Lajur di **https://lajur.web.id**, dibuat dengan [Docus](https://docus.dev).
 
 ## Menjalankan
 
@@ -27,4 +27,6 @@ Situs statis, bisa di-host di Cloudflare Pages, Netlify, atau Vercel:
 | Build command | `bun run generate` |
 | Output directory | `.output/public` |
 
-Lalu tambahkan domain `sibos.permadi.dev` di layanan hosting dan buat record DNS `CNAME sibos` ke alamat yang diberikan layanan tersebut.
+Lalu tambahkan domain `lajur.web.id` (dan `www.lajur.web.id`) di layanan hosting. Karena `lajur.web.id` adalah domain utama (apex), record DNS-nya mengikuti petunjuk layanan hosting: A/ALIAS ke IP yang diberikan, atau `CNAME` dengan *CNAME flattening* bila DNS-nya di Cloudflare. Arahkan `www` ke domain utama.
+
+Domain lama `sibos.permadi.dev` sebaiknya dialihkan (redirect 301) ke `https://lajur.web.id` agar tautan lama tetap jalan.

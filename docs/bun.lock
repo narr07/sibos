@@ -5,9 +5,9 @@
     "": {
       "name": "sibos-docs",
       "dependencies": {
-        "better-sqlite3": "^12.11.1",
+        "better-sqlite3": "12.11.1",
         "docus": "5.14.0",
-        "nuxt": "^4.4.8",
+        "nuxt": "4.6.1",
       },
     },
   },
