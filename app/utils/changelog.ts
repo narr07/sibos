@@ -9,6 +9,19 @@ export interface VersiRilis {
 
 export const CHANGELOG: VersiRilis[] = [
 	{
+		versi: "0.4.1",
+		tanggal: "2026-11-02",
+		judul: "Toko SIPLah dari lima marketplace",
+		ringkasan: "Katalog toko SIPLah kini bisa diambil dari Gramedia, Intan Pariwara, Temprina, dan Masmedia, selain Toko Ladang.",
+		perubahan: [
+			{ jenis: "baru", teks: "Tambah toko SIPLah dari Gramedia, Intan Pariwara, Temprina, dan Masmedia cukup dengan menempel link toko; marketplace dikenali otomatis" },
+			{ jenis: "baru", teks: "Harga zona ditampilkan sebagai rentang; perbandingan, perkiraan, dan Pakai harga memakai harga tertinggi agar anggaran tidak kurang" },
+			{ jenis: "baru", teks: "Tautan Lihat di situs toko membuka halaman produk di marketplace asalnya" },
+			{ jenis: "ubah", teks: "Toko yang sangat besar diambil sampai sekitar 3.000 produk, dengan peringatan bila katalog terpotong" },
+			{ jenis: "perbaikan", teks: "Nama barang yang panjang di tabel pencocokan Toko SIPLah tidak lagi menumpuk dengan kolom harga" }
+		]
+	},
+	{
 		versi: "0.4.0",
 		tanggal: "2026-11-02",
 		judul: "Lajur: nama baru, banding harga draft RKAS",
