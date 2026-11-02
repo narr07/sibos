@@ -1,0 +1,48 @@
+{
+	"status": "ok",
+	"data": [
+		{
+			"page_id": "3347_l165001",
+			"member_id": "3347_7411",
+			"name": "Ballpoint,Type AE7 ketebalan 0,5 mm",
+			"price": 41441,
+			"price_with_tax": "46000",
+			"has_tax": 1,
+			"price2": "0",
+			"price3": "0",
+			"price4": "0",
+			"price5a": "0",
+			"price5b": "0",
+			"stock": 60,
+			"stock_unlimited": 0,
+			"image_url": [
+				"https://system.siplahmasmedia.co.id/~file/~item/2023/3/21/ballpointtype_ae7_ketebalan_05_mm-2616e-3347_q16584.png"
+			],
+			"amount_unit": "Pcs",
+			"member_name": "Agni Jaya 88"
+		},
+		{
+			"page_id": "3347_l165004",
+			"member_id": "3347_7411",
+			"name": "Kertas HVS 80 Gram Folio F4 ",
+			"price": 54054,
+			"price_with_tax": "60000",
+			"has_tax": 1,
+			"price2": "50000",
+			"price3": "0",
+			"price4": "0",
+			"price5a": "0",
+			"price5b": "60000",
+			"stock": 50,
+			"stock_unlimited": 0,
+			"image_url": [],
+			"amount_unit": "Pcs",
+			"member_name": "Agni Jaya 88"
+		}
+	],
+	"meta_data": {
+		"page": "1",
+		"page_total": 537,
+		"page_max": 30
+	}
+}

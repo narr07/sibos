@@ -2,19 +2,23 @@
 // Rumusnya HARUS sama dengan `match_totals` dan penentuan status di src-tauri/src/commands/siplah.rs.
 
 import type { SiplahMatchItem, SiplahMatchSummary, SiplahProduk } from "./api";
+import { hargaBanding } from "./siplahPlatform";
 
-/** Pasangkan `produk` ke item, lalu tentukan ulang selisih per satuan, persentase, dan status. */
+/**
+ * Pasangkan `produk` ke item, lalu tentukan ulang selisih per satuan, persentase, dan status.
+ * Harga zona memakai harga tertinggi (lihat `hargaBanding`).
+ */
 export const pasangProduk = (item: SiplahMatchItem, produk: SiplahProduk): void => {
-	const selisih = produk.harga - item.hargaRkas;
+	const selisih = hargaBanding(produk) - item.hargaRkas;
 	item.matchedProduct = produk;
 	item.selisih = selisih;
 	item.persenSelisih = item.hargaRkas > 0 ? (selisih / item.hargaRkas) * 100 : 0;
 	item.status = selisih === 0 ? "sesuai" : selisih < 0 ? "lebih_murah" : "lebih_mahal";
 };
 
-/** Perkiraan biaya satu item di toko: harga produk × volume (volume kosong dianggap 1). */
+/** Perkiraan biaya satu item di toko: harga produk (zona tertinggi) × volume (volume kosong dianggap 1). */
 export const estimasiToko = (item: SiplahMatchItem): number | null =>
-	item.matchedProduct ? Math.round(item.matchedProduct.harga * (item.volume > 0 ? item.volume : 1)) : null;
+	item.matchedProduct ? Math.round(hargaBanding(item.matchedProduct) * (item.volume > 0 ? item.volume : 1)) : null;
 
 /**
  * Ringkasan laporan. Hemat hanya membandingkan item yang punya produk cocok; item tanpa padanan

@@ -82,7 +82,7 @@
 									{{ t.nama }}
 								</p>
 								<p class="text-xs text-muted truncate">
-									{{ t.kabupaten || t.provinsi || "SIPLah Toko Ladang" }}
+									{{ labelPlatform(t.platform) }}{{ t.kabupaten || t.provinsi ? ` · ${t.kabupaten || t.provinsi}` : "" }}
 								</p>
 								<div class="flex items-center gap-2 mt-1.5 text-[11px] text-muted">
 									<UBadge color="neutral" variant="subtle" size="xs">
@@ -316,8 +316,8 @@
 									</template>
 
 									<template #namaRkas-cell="{ row }">
-										<div class="max-w-xs">
-											<p class="font-medium text-highlighted text-sm">
+										<div class="w-64 max-w-xs whitespace-normal">
+											<p class="font-medium text-highlighted text-sm line-clamp-2 break-words" :title="row.original.namaRkas">
 												{{ row.original.namaRkas }}
 											</p>
 											<div class="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] text-muted">
@@ -346,7 +346,7 @@
 									</template>
 
 									<template #matchedProduct-cell="{ row }">
-										<div v-if="row.original.matchedProduct" class="max-w-sm">
+										<div v-if="row.original.matchedProduct" class="w-64 max-w-sm whitespace-normal">
 											<div class="flex items-start gap-2">
 												<div class="size-8 bg-neutral-500/10 shrink-0 overflow-hidden border border-default mt-0.5">
 													<img
@@ -359,7 +359,7 @@
 													<UIcon v-else name="i-lucide-box" class="size-4 m-2 text-muted" />
 												</div>
 												<div class="min-w-0 flex-1">
-													<p class="font-medium text-highlighted line-clamp-2" :title="row.original.matchedProduct.nama">
+													<p class="font-medium text-highlighted line-clamp-2 break-words" :title="row.original.matchedProduct.nama">
 														{{ row.original.matchedProduct.nama }}
 													</p>
 													<div class="flex items-center gap-1.5 mt-1">
@@ -397,7 +397,7 @@
 									<template #hargaToko-cell="{ row }">
 										<div v-if="row.original.matchedProduct" class="text-right tabular-nums">
 											<p class="font-medium text-highlighted">
-												Rp {{ angka(row.original.matchedProduct.harga) }}
+												{{ labelHarga(row.original.matchedProduct) }}
 											</p>
 											<p class="text-[11px] text-muted">
 												Stok: {{ row.original.matchedProduct.stok }}
@@ -481,16 +481,16 @@
 										<p class="font-medium text-highlighted text-sm">
 											{{ row.original.nama }}
 										</p>
-										<p class="text-[11px] text-muted font-mono mt-0.5">
-											ID: {{ row.original.id }}
-										</p>
+										<ULink :to="urlProduk(row.original)" target="_blank" class="text-[11px] text-muted hover:underline mt-0.5">
+											Lihat di situs toko
+										</ULink>
 									</div>
 								</template>
 
 								<template #harga-cell="{ row }">
 									<div class="text-right tabular-nums">
 										<p class="font-bold text-highlighted">
-											Rp {{ angka(row.original.harga) }}
+											{{ labelHarga(row.original) }}
 										</p>
 										<UBadge v-if="row.original.kenaPajak" color="neutral" variant="subtle" size="xs">
 											PPN
@@ -521,13 +521,13 @@
 			<template #body>
 				<div class="space-y-4">
 					<p class="text-xs text-muted">
-						Masukkan link atau ID toko SIPLah (contoh dari Toko Ladang). Semua produk dari toko akan langsung diambil dan disimpan ke database lokal Lajur.
+						Tempel link halaman toko dari Toko Ladang, Gramedia, Intan Pariwara, Temprina, atau Masmedia. Semua produk toko akan diambil dan disimpan di database lokal Lajur. Harga zona disimpan sebagai rentang; perbandingan memakai harga tertinggi.
 					</p>
 
-					<UFormField label="Link Toko SIPLah" hint="URL Toko Ladang">
+					<UFormField label="Link Toko SIPLah" hint="5 marketplace didukung">
 						<UInput
 							v-model="inputUrl"
-							placeholder="https://siplah.tokoladang.co.id/m/kpr-rajagaluh.92186"
+							placeholder="https://siplahgramedia.id/main/penyedia/..."
 							icon="i-lucide-link"
 							class="w-full"
 							@keydown.enter="periksaLink"
@@ -576,9 +576,14 @@
 								<p class="text-xs text-muted">
 									{{ [previewToko.kecamatan, previewToko.kabupaten, previewToko.provinsi].filter(Boolean).join(", ") }}
 								</p>
-								<UBadge v-if="previewToko.tipe" color="neutral" variant="subtle" size="xs" class="mt-1">
-									{{ previewToko.tipe }}
-								</UBadge>
+								<div class="flex gap-1 mt-1">
+									<UBadge color="primary" variant="subtle" size="xs">
+										{{ labelPlatform(previewToko.platform) }}
+									</UBadge>
+									<UBadge v-if="previewToko.tipe" color="neutral" variant="subtle" size="xs">
+										{{ previewToko.tipe }}
+									</UBadge>
+								</div>
 							</div>
 						</div>
 						<p v-if="previewToko.slogan" class="text-xs italic text-muted">
@@ -639,10 +644,10 @@
 							</div>
 							<div class="text-right shrink-0">
 								<p class="text-xs font-bold text-highlighted">
-									Rp {{ angka(c.produk.harga) }}
+									{{ labelHarga(c.produk) }}
 								</p>
-								<p class="text-[11px]" :class="c.produk.harga <= activeMatchItem.hargaRkas ? 'text-success' : 'text-error'">
-									{{ c.produk.harga <= activeMatchItem.hargaRkas ? `Hemat Rp ${angka(activeMatchItem.hargaRkas - c.produk.harga)}` : `+ Rp ${angka(c.produk.harga - activeMatchItem.hargaRkas)}` }}
+								<p class="text-[11px]" :class="hargaBanding(c.produk) <= activeMatchItem.hargaRkas ? 'text-success' : 'text-error'">
+									{{ hargaBanding(c.produk) <= activeMatchItem.hargaRkas ? `Hemat ${rupiah(activeMatchItem.hargaRkas - hargaBanding(c.produk))}` : `+ ${rupiah(hargaBanding(c.produk) - activeMatchItem.hargaRkas)}` }}
 								</p>
 							</div>
 						</div>
@@ -668,7 +673,7 @@
 								@click="tetapkanProduk(p)"
 							>
 								<span class="truncate font-medium text-highlighted">{{ p.nama }}</span>
-								<span class="font-bold ml-2 shrink-0">Rp {{ angka(p.harga) }}</span>
+								<span class="font-bold ml-2 shrink-0">{{ labelHarga(p) }}</span>
 							</div>
 						</div>
 					</div>

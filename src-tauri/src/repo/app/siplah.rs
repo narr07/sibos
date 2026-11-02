@@ -1,7 +1,8 @@
 //! Toko dan produk SIPLah untuk pencocokan harga barang belanja.
-//! Data toko dan produk discrape dari SIPLah (Toko Ladang dsb.) dan disimpan di sibos.db.
+//! Data toko dan produk diambil dari situs mitra SIPLah (Toko Ladang, Gramedia, Intan, Temprina,
+//! Masmedia; lihat `crate::siplah`) dan disimpan di sibos.db.
 
-use rusqlite::{params, OptionalExtension};
+use rusqlite::{params, OptionalExtension, Row};
 use serde::{Deserialize, Serialize};
 
 use super::AppDb;
@@ -40,10 +41,29 @@ CREATE TABLE siplah_produk (
 CREATE INDEX idx_siplah_produk_toko ON siplah_produk (toko_id);
 CREATE INDEX idx_siplah_produk_nama ON siplah_produk (nama);";
 
+/// Banyak platform SIPLah. Toko lama (sebelum migrasi) semuanya Toko Ladang: `kode` = ID merchant-nya.
+/// Toko platform lain memakai ID internal negatif (lihat `crate::siplah::stable_id`).
+pub const MIGRATION_PLATFORM: &str = "ALTER TABLE siplah_toko ADD COLUMN platform TEXT NOT NULL DEFAULT 'tokoladang';
+ALTER TABLE siplah_toko ADD COLUMN kode TEXT;
+UPDATE siplah_toko SET kode = CAST(id AS TEXT);
+CREATE UNIQUE INDEX idx_siplah_toko_platform_kode ON siplah_toko (platform, kode);
+ALTER TABLE siplah_produk ADD COLUMN harga_max INTEGER;
+ALTER TABLE siplah_produk ADD COLUMN url TEXT;";
+
+fn default_platform() -> String {
+	"tokoladang".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiplahToko {
 	pub id: i64,
+	/// Kode platform: "tokoladang", "gramedia", "intan", "temprina", "masmedia".
+	#[serde(default = "default_platform")]
+	pub platform: String,
+	/// ID atau slug toko di situs asal.
+	#[serde(default)]
+	pub kode: Option<String>,
 	pub nama: String,
 	pub slug: Option<String>,
 	pub url: String,
@@ -70,7 +90,11 @@ pub struct SiplahProduk {
 	pub id: i64,
 	pub toko_id: i64,
 	pub nama: String,
+	/// Harga terendah (atau satu-satunya harga bila tidak berzona).
 	pub harga: i64,
+	/// Harga zona tertinggi; None bila produk hanya punya satu harga.
+	#[serde(default)]
+	pub harga_max: Option<i64>,
 	#[serde(default)]
 	pub stok: i64,
 	#[serde(default)]
@@ -78,83 +102,68 @@ pub struct SiplahProduk {
 	pub gambar: Option<String>,
 	#[serde(default = "default_taxed")]
 	pub kena_pajak: bool,
+	/// Halaman produk di situs asal.
+	#[serde(default)]
+	pub url: Option<String>,
+}
+
+impl SiplahProduk {
+	/// Harga untuk perbandingan dan perkiraan: harga zona tertinggi agar anggaran tidak kurang.
+	pub fn harga_banding(&self) -> i64 {
+		self.harga_max.unwrap_or(self.harga).max(self.harga)
+	}
 }
 
 fn default_taxed() -> bool {
 	true
 }
 
+const TOKO_COLUMNS: &str = "id, platform, kode, nama, slug, url, tipe, slogan, alamat, provinsi, kabupaten, kecamatan, kodepos,
+	REPLACE(gambar, 'worker-siplah.tokoladang.co.id', 'siplah-oss.tokoladang.co.id'),
+	total_produk, terakhir_sync, created_at, updated_at";
+
+fn toko_from_row(r: &Row) -> rusqlite::Result<SiplahToko> {
+	Ok(SiplahToko {
+		id: r.get(0)?,
+		platform: r.get(1)?,
+		kode: r.get(2)?,
+		nama: r.get(3)?,
+		slug: r.get(4)?,
+		url: r.get(5)?,
+		tipe: r.get(6)?,
+		slogan: r.get(7)?,
+		alamat: r.get(8)?,
+		provinsi: r.get(9)?,
+		kabupaten: r.get(10)?,
+		kecamatan: r.get(11)?,
+		kodepos: r.get(12)?,
+		gambar: r.get(13)?,
+		total_produk: r.get(14)?,
+		terakhir_sync: r.get(15)?,
+		created_at: r.get(16)?,
+		updated_at: r.get(17)?,
+	})
+}
+
 impl AppDb {
 	pub fn siplah_toko_list(&self) -> AppResult<Vec<SiplahToko>> {
-		let mut stmt = self.conn.prepare(
-			"SELECT id, nama, slug, url, tipe, slogan, alamat, provinsi, kabupaten, kecamatan, kodepos,
-			        REPLACE(gambar, 'worker-siplah.tokoladang.co.id', 'siplah-oss.tokoladang.co.id'),
-			        total_produk, terakhir_sync, created_at, updated_at
-			 FROM siplah_toko
-			 ORDER BY nama COLLATE NOCASE ASC",
-		)?;
-		let rows = stmt
-			.query_map([], |r| {
-				Ok(SiplahToko {
-					id: r.get(0)?,
-					nama: r.get(1)?,
-					slug: r.get(2)?,
-					url: r.get(3)?,
-					tipe: r.get(4)?,
-					slogan: r.get(5)?,
-					alamat: r.get(6)?,
-					provinsi: r.get(7)?,
-					kabupaten: r.get(8)?,
-					kecamatan: r.get(9)?,
-					kodepos: r.get(10)?,
-					gambar: r.get(11)?,
-					total_produk: r.get(12)?,
-					terakhir_sync: r.get(13)?,
-					created_at: r.get(14)?,
-					updated_at: r.get(15)?,
-				})
-			})?
-			.collect::<Result<Vec<_>, _>>()?;
+		let mut stmt = self.conn.prepare(&format!("SELECT {TOKO_COLUMNS} FROM siplah_toko ORDER BY nama COLLATE NOCASE ASC"))?;
+		let rows = stmt.query_map([], toko_from_row)?.collect::<Result<Vec<_>, _>>()?;
 		Ok(rows)
 	}
 
 	pub fn siplah_toko_get(&self, id: i64) -> AppResult<Option<SiplahToko>> {
-		let mut stmt = self.conn.prepare(
-			"SELECT id, nama, slug, url, tipe, slogan, alamat, provinsi, kabupaten, kecamatan, kodepos,
-			        REPLACE(gambar, 'worker-siplah.tokoladang.co.id', 'siplah-oss.tokoladang.co.id'),
-			        total_produk, terakhir_sync, created_at, updated_at
-			 FROM siplah_toko WHERE id = ?1",
-		)?;
-		let toko = stmt
-			.query_row(params![id], |r| {
-				Ok(SiplahToko {
-					id: r.get(0)?,
-					nama: r.get(1)?,
-					slug: r.get(2)?,
-					url: r.get(3)?,
-					tipe: r.get(4)?,
-					slogan: r.get(5)?,
-					alamat: r.get(6)?,
-					provinsi: r.get(7)?,
-					kabupaten: r.get(8)?,
-					kecamatan: r.get(9)?,
-					kodepos: r.get(10)?,
-					gambar: r.get(11)?,
-					total_produk: r.get(12)?,
-					terakhir_sync: r.get(13)?,
-					created_at: r.get(14)?,
-					updated_at: r.get(15)?,
-				})
-			})
-			.optional()?;
-		Ok(toko)
+		let mut stmt = self.conn.prepare(&format!("SELECT {TOKO_COLUMNS} FROM siplah_toko WHERE id = ?1"))?;
+		Ok(stmt.query_row(params![id], toko_from_row).optional()?)
 	}
 
 	pub fn siplah_toko_save(&self, t: &SiplahToko) -> AppResult<()> {
 		self.conn.execute(
-			"INSERT INTO siplah_toko (id, nama, slug, url, tipe, slogan, alamat, provinsi, kabupaten, kecamatan, kodepos, gambar, total_produk, terakhir_sync, updated_at)
-			 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, datetime('now'))
+			"INSERT INTO siplah_toko (id, platform, kode, nama, slug, url, tipe, slogan, alamat, provinsi, kabupaten, kecamatan, kodepos, gambar, total_produk, terakhir_sync, updated_at)
+			 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, datetime('now'))
 			 ON CONFLICT(id) DO UPDATE SET
+			   platform = excluded.platform,
+			   kode = excluded.kode,
 			   nama = excluded.nama,
 			   slug = excluded.slug,
 			   url = excluded.url,
@@ -171,6 +180,8 @@ impl AppDb {
 			   updated_at = datetime('now')",
 			params![
 				t.id,
+				t.platform,
+				t.kode,
 				t.nama,
 				t.slug,
 				t.url,
@@ -195,41 +206,33 @@ impl AppDb {
 	}
 
 	pub fn siplah_produk_list(&self, toko_id: i64, keyword: Option<&str>) -> AppResult<Vec<SiplahProduk>> {
-		let (sql, params_vec): (String, Vec<Box<dyn rusqlite::ToSql>>) = match keyword.map(str::trim).filter(|k| !k.is_empty()) {
-			Some(kw) => (
-				"SELECT id, toko_id, nama, harga, stok, terjual,
-				        REPLACE(gambar, 'worker-siplah.tokoladang.co.id', 'siplah-oss.tokoladang.co.id'), kena_pajak
-				 FROM siplah_produk
-				 WHERE toko_id = ?1 AND nama LIKE ?2
-				 ORDER BY nama COLLATE NOCASE ASC".into(),
-				vec![Box::new(toko_id), Box::new(format!("%{kw}%"))],
-			),
-			None => (
-				"SELECT id, toko_id, nama, harga, stok, terjual,
-				        REPLACE(gambar, 'worker-siplah.tokoladang.co.id', 'siplah-oss.tokoladang.co.id'), kena_pajak
-				 FROM siplah_produk
-				 WHERE toko_id = ?1
-				 ORDER BY nama COLLATE NOCASE ASC".into(),
-				vec![Box::new(toko_id)],
-			),
+		let base = "SELECT id, toko_id, nama, harga, harga_max, stok, terjual,
+		        REPLACE(gambar, 'worker-siplah.tokoladang.co.id', 'siplah-oss.tokoladang.co.id'), kena_pajak, url
+		 FROM siplah_produk WHERE toko_id = ?1";
+		let keyword = keyword.map(str::trim).filter(|k| !k.is_empty());
+		let sql = match keyword {
+			Some(_) => format!("{base} AND nama LIKE ?2 ORDER BY nama COLLATE NOCASE ASC"),
+			None => format!("{base} ORDER BY nama COLLATE NOCASE ASC"),
 		};
-
 		let mut stmt = self.conn.prepare(&sql)?;
-		let param_refs: Vec<&dyn rusqlite::ToSql> = params_vec.iter().map(|b| b.as_ref()).collect();
-		let rows = stmt
-			.query_map(param_refs.as_slice(), |r| {
-				Ok(SiplahProduk {
-					id: r.get(0)?,
-					toko_id: r.get(1)?,
-					nama: r.get(2)?,
-					harga: r.get(3)?,
-					stok: r.get(4)?,
-					terjual: r.get(5)?,
-					gambar: r.get(6)?,
-					kena_pajak: r.get::<_, i64>(7)? != 0,
-				})
-			})?
-			.collect::<Result<Vec<_>, _>>()?;
+		let map = |r: &Row| {
+			Ok(SiplahProduk {
+				id: r.get(0)?,
+				toko_id: r.get(1)?,
+				nama: r.get(2)?,
+				harga: r.get(3)?,
+				harga_max: r.get(4)?,
+				stok: r.get(5)?,
+				terjual: r.get(6)?,
+				gambar: r.get(7)?,
+				kena_pajak: r.get::<_, i64>(8)? != 0,
+				url: r.get(9)?,
+			})
+		};
+		let rows = match keyword {
+			Some(kw) => stmt.query_map(params![toko_id, format!("%{kw}%")], map)?.collect::<Result<Vec<_>, _>>()?,
+			None => stmt.query_map(params![toko_id], map)?.collect::<Result<Vec<_>, _>>()?,
+		};
 		Ok(rows)
 	}
 
@@ -237,9 +240,10 @@ impl AppDb {
 		let tx = self.conn.transaction()?;
 		tx.execute("DELETE FROM siplah_produk WHERE toko_id = ?1", params![toko_id])?;
 		{
+			// OR REPLACE: produk yang tampil di dua halaman (urutan berubah saat diambil) cukup disimpan sekali.
 			let mut stmt = tx.prepare_cached(
-				"INSERT INTO siplah_produk (id, toko_id, nama, harga, stok, terjual, gambar, kena_pajak, created_at, updated_at)
-				 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, datetime('now'), datetime('now'))",
+				"INSERT OR REPLACE INTO siplah_produk (id, toko_id, nama, harga, harga_max, stok, terjual, gambar, kena_pajak, url, created_at, updated_at)
+				 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, datetime('now'), datetime('now'))",
 			)?;
 			for p in produk_list {
 				stmt.execute(params![
@@ -247,14 +251,16 @@ impl AppDb {
 					toko_id,
 					p.nama,
 					p.harga,
+					p.harga_max,
 					p.stok,
 					p.terjual,
 					p.gambar,
 					if p.kena_pajak { 1 } else { 0 },
+					p.url,
 				])?;
 			}
 		}
-		let count = produk_list.len() as i64;
+		let count: i64 = tx.query_row("SELECT count(*) FROM siplah_produk WHERE toko_id = ?1", params![toko_id], |r| r.get(0))?;
 		tx.execute(
 			"UPDATE siplah_toko
 			 SET total_produk = ?2, terakhir_sync = datetime('now'), updated_at = datetime('now')
@@ -263,5 +269,66 @@ impl AppDb {
 		)?;
 		tx.commit()?;
 		Ok(count)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	fn toko(id: i64, platform: &str, kode: &str) -> SiplahToko {
+		SiplahToko {
+			id,
+			platform: platform.into(),
+			kode: Some(kode.into()),
+			nama: "Toko Uji".into(),
+			slug: None,
+			url: "https://contoh".into(),
+			tipe: None,
+			slogan: None,
+			alamat: None,
+			provinsi: None,
+			kabupaten: None,
+			kecamatan: None,
+			kodepos: None,
+			gambar: None,
+			total_produk: 0,
+			terakhir_sync: None,
+			created_at: String::new(),
+			updated_at: String::new(),
+		}
+	}
+
+	fn produk(id: i64, toko_id: i64, harga: i64, harga_max: Option<i64>) -> SiplahProduk {
+		SiplahProduk { id, toko_id, nama: format!("Produk {id}"), harga, harga_max, stok: 1, terjual: 0, gambar: None, kena_pajak: true, url: Some(format!("https://contoh/p/{id}")) }
+	}
+
+	#[test]
+	fn platform_toko_and_zone_prices_roundtrip() {
+		let mut db = AppDb::open_in_memory().unwrap();
+		db.siplah_toko_save(&toko(-42, "gramedia", "abc123")).unwrap();
+		let t = db.siplah_toko_get(-42).unwrap().unwrap();
+		assert_eq!(t.platform, "gramedia");
+		assert_eq!(t.kode.as_deref(), Some("abc123"));
+
+		// Produk ganda (tampil di dua halaman) disimpan sekali; total mengikuti isi tabel.
+		let list = [produk(-1, -42, 86_900, Some(181_100)), produk(-2, -42, 5_000, None), produk(-2, -42, 5_000, None)];
+		assert_eq!(db.siplah_produk_save_batch(-42, &list).unwrap(), 2);
+		let saved = db.siplah_produk_list(-42, None).unwrap();
+		let zona = saved.iter().find(|p| p.id == -1).unwrap();
+		assert_eq!((zona.harga, zona.harga_max), (86_900, Some(181_100)));
+		assert_eq!(zona.harga_banding(), 181_100);
+		assert_eq!(zona.url.as_deref(), Some("https://contoh/p/-1"));
+		assert_eq!(saved.iter().find(|p| p.id == -2).unwrap().harga_banding(), 5_000);
+		assert_eq!(db.siplah_produk_list(-42, Some("produk -2")).unwrap().len(), 1);
+	}
+
+	#[test]
+	fn same_store_twice_is_rejected_by_platform_kode() {
+		let db = AppDb::open_in_memory().unwrap();
+		db.siplah_toko_save(&toko(-1, "intan", "toko-a")).unwrap();
+		assert!(db.siplah_toko_save(&toko(-2, "intan", "toko-a")).is_err());
+		// Kode sama di platform lain boleh.
+		db.siplah_toko_save(&toko(-3, "temprina", "toko-a")).unwrap();
 	}
 }

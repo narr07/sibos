@@ -1,0 +1,108 @@
+{
+	"status": true,
+	"message": "OK.",
+	"data": [
+		{
+			"id": "171626",
+			"level_id": "",
+			"harga": 65000,
+			"auth": false,
+			"pembelian_minimum": "1",
+			"harga_zona": "0",
+			"nego": "1",
+			"foto": [
+				"https://files.temprina.co.id//cdn/559/foto/f16dce05-a204-2827da-da2d0778-077876ed86-76ed8637.jpeg"
+			],
+			"stok_slalu_ada": "1",
+			"stok": "0",
+			"tkdn": true,
+			"kategori_id": "23",
+			"kategori_nama": "Buku Non Teks",
+			"jenjang": "SMA/MA,SMK/MAK",
+			"kelas": null,
+			"nama": "KETIKA KUDA SEMUT DAN GAJAH BEKERJA",
+			"nama_paket": "",
+			"ppn": "0",
+			"ppn_kategori": "0",
+			"ppn_title": "Termasuk Pajak",
+			"provinsi_id": "34",
+			"slug": "ketika-kuda-semut-dan-gajah-bekerja",
+			"rating": {
+				"jumlah_rating": 0,
+				"jumlah_ulasan": 0
+			},
+			"terjual": "1",
+			"disabled": true,
+			"paket": "0",
+			"sumber_dana": "",
+			"user": {
+				"id": 559,
+				"foto": null,
+				"nama": "CV FUTO INDONESIA",
+				"slug": "cv-futo-indonesia",
+				"provinsi_id": 34,
+				"kabupaten_id": 509,
+				"kecamatan_id": 509,
+				"nama_provinsi": "Sumatera Utara",
+				"nama_kabupaten": "Medan",
+				"nama_kecamatan": "Medan Johor"
+			}
+		},
+		{
+			"id": "171625",
+			"level_id": "",
+			"harga": {
+				"min": 65000,
+				"max": 81000
+			},
+			"auth": false,
+			"pembelian_minimum": "1",
+			"harga_zona": "1",
+			"nego": "1",
+			"foto": null,
+			"stok_slalu_ada": "1",
+			"stok": "0",
+			"tkdn": true,
+			"kategori_id": "23",
+			"kategori_nama": "Buku Non Teks",
+			"jenjang": "SMA/MA,SMK/MAK",
+			"kelas": null,
+			"nama": "SIWA SUMPAH BANYUPUTRA",
+			"nama_paket": "",
+			"ppn": "1",
+			"ppn_kategori": "0",
+			"ppn_title": "Termasuk Pajak",
+			"provinsi_id": "34",
+			"slug": "siwa-sumpah-banyuputra",
+			"rating": {
+				"jumlah_rating": 0,
+				"jumlah_ulasan": 0
+			},
+			"terjual": "2",
+			"disabled": true,
+			"paket": "0",
+			"sumber_dana": "",
+			"user": {
+				"id": 559,
+				"foto": null,
+				"nama": "CV FUTO INDONESIA",
+				"slug": "cv-futo-indonesia",
+				"provinsi_id": 34,
+				"kabupaten_id": 509,
+				"kecamatan_id": 509,
+				"nama_provinsi": "Sumatera Utara",
+				"nama_kabupaten": "Medan",
+				"nama_kecamatan": "Medan Johor"
+			}
+		}
+	],
+	"pagination": {
+		"status": true,
+		"mulai": 0,
+		"limit": 20,
+		"halaman_aktif": 1,
+		"jml_data": 730,
+		"jml_halaman": 37,
+		"info_halaman": "Menampilkan 1 - 20 dari 37 Halaman"
+	}
+}

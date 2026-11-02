@@ -1,0 +1,18 @@
+{
+	"status": true,
+	"message": "OK",
+	"data": {
+		"user_id": "559",
+		"nama": "CV FUTO INDONESIA",
+		"foto": null,
+		"banner": null,
+		"nama_provinsi": "Sumatera Utara",
+		"nama_kabupaten": "Medan",
+		"nama_kecamatan": "Medan Johor",
+		"total_produk": "730",
+		"rating": {
+			"jumlah_rating": 4.8,
+			"jumlah_ulasan": 26
+		}
+	}
+}

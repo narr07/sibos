@@ -39,7 +39,7 @@
 				Belum Ada Toko SIPLah Tersimpan
 			</p>
 			<p class="text-sm mt-1 max-w-md mx-auto">
-				Simpan toko SIPLah (contoh: Toko Ladang) terlebih dahulu agar sistem dapat mencocokkan barang belanja bulanan Anda.
+				Simpan toko SIPLah (Toko Ladang, Gramedia, Intan Pariwara, Temprina, atau Masmedia) terlebih dahulu agar sistem dapat mencocokkan barang belanja bulanan Anda.
 			</p>
 			<div class="mt-4">
 				<UButton
@@ -387,7 +387,7 @@
 											Harga Toko Satuan
 										</p>
 										<p class="text-xs font-bold text-highlighted font-mono mt-0.5">
-											{{ rupiah(item.matchedProduct.harga) }}
+											{{ labelHarga(item.matchedProduct) }}
 										</p>
 										<p class="text-[10px] text-muted">
 											Stok: {{ item.matchedProduct.stok }}
@@ -398,7 +398,7 @@
 											Estimasi Belanja Toko
 										</p>
 										<p class="text-xs font-bold text-highlighted font-mono mt-0.5">
-											{{ rupiah(item.matchedProduct.harga * Math.max(1, Math.round(item.volume))) }}
+											{{ rupiah(estimasiToko(item) ?? 0) }}
 										</p>
 									</div>
 									<div>
@@ -442,7 +442,7 @@
 										color="neutral"
 										variant="ghost"
 										size="xs"
-										:to="productUrl(item.matchedProduct.id)"
+										:to="urlProduk(item.matchedProduct)"
 										target="_blank"
 										title="Buka halaman produk ini di SIPLah"
 									>
@@ -534,10 +534,10 @@
 								</div>
 								<div class="text-right shrink-0 tabular">
 									<p class="text-xs font-bold text-highlighted font-mono">
-										{{ rupiah(c.produk.harga) }}
+										{{ labelHarga(c.produk) }}
 									</p>
-									<p class="text-[11px]" :class="c.produk.harga <= activeMatchItem.hargaRkas ? 'text-success' : 'text-error'">
-										{{ c.produk.harga <= activeMatchItem.hargaRkas ? `Hemat ${rupiah(activeMatchItem.hargaRkas - c.produk.harga)}` : `+ ${rupiah(c.produk.harga - activeMatchItem.hargaRkas)}` }}
+									<p class="text-[11px]" :class="hargaBanding(c.produk) <= activeMatchItem.hargaRkas ? 'text-success' : 'text-error'">
+										{{ hargaBanding(c.produk) <= activeMatchItem.hargaRkas ? `Hemat ${rupiah(activeMatchItem.hargaRkas - hargaBanding(c.produk))}` : `+ ${rupiah(hargaBanding(c.produk) - activeMatchItem.hargaRkas)}` }}
 									</p>
 								</div>
 							</div>
@@ -576,7 +576,7 @@
 									</div>
 									<span class="truncate font-medium text-highlighted">{{ p.nama }}</span>
 								</div>
-								<span class="font-bold ml-2 shrink-0 tabular font-mono">{{ rupiah(p.harga) }}</span>
+								<span class="font-bold ml-2 shrink-0 tabular font-mono">{{ labelHarga(p) }}</span>
 							</div>
 							<p v-if="filteredManualCandidates.length === 0" class="text-center text-xs text-muted py-4">
 								Tidak ada produk toko yang cocok dengan pencarian.
@@ -662,9 +662,6 @@
 		{ label: "Lebih Mahal", value: "lebih_mahal" },
 		{ label: "Belum Ada Cocok", value: "tidak_cocok" }
 	];
-
-	// Helper URL produk SIPLah
-	const productUrl = (productId: number): string => `https://siplah.tokoladang.co.id/p/produk.${productId}`;
 
 	// Helper fallback gambar jika gagal memuat
 	const handleImgError = (event: Event) => {

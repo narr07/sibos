@@ -709,3 +709,30 @@ fn write_scanner_catches_violations() {
 	assert!(lits.iter().any(|l| has_word(l, "UPDATE")));
 	assert!(!lits.iter().any(|l| has_word(l, "DROP")));
 }
+
+/// Uji crawler ke situs SIPLah sungguhan (butuh internet, dijalankan manual):
+/// `cargo test real_siplah_platforms -- --ignored --nocapture`
+#[test]
+#[ignore]
+fn real_siplah_platforms() {
+	use crate::siplah::{ambil_halaman, ambil_toko, kenali};
+	let links = [
+		"https://siplah.tokoladang.co.id/m/kpr-rajagaluh.92186",
+		"https://siplahgramedia.id/main/penyedia/274a734f75894f359d958a2a4c1f76a8",
+		"https://siplah.intanonline.com/frontend/web/store/ptnusasaranapratama",
+		"https://siplah.temprina.co.id/store/cv-futo-indonesia",
+		"https://siplahmasmedia.co.id/vendor/3347_7411",
+	];
+	for link in links {
+		let (platform, kode) = kenali(link).unwrap();
+		let toko = ambil_toko(platform, &kode).unwrap();
+		let h = ambil_halaman(platform, &kode, toko.id, 1).unwrap();
+		let zona = h.produk.iter().filter(|p| p.harga_max.is_some()).count();
+		println!("{:<10} {:<32} {:>3} produk (zona {zona}), lanjut: {}, {:?}/{:?}", platform.kode(), toko.nama, h.produk.len(), h.ada_lagi, toko.kabupaten, toko.provinsi);
+		if let Some(p) = h.produk.first() {
+			println!("           contoh: {} | Rp {} - {:?} | pajak {} | {}", p.nama, p.harga, p.harga_max, p.kena_pajak, p.url.as_deref().unwrap_or("-"));
+		}
+		assert!(!h.produk.is_empty(), "{link}: tidak ada produk");
+		assert!(h.produk.iter().all(|p| p.harga > 0 && !p.nama.is_empty() && p.url.is_some()), "{link}: produk tidak lengkap");
+	}
+}

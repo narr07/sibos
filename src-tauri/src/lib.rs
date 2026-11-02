@@ -5,6 +5,7 @@ mod pengaturan;
 mod repo;
 mod secret;
 mod services;
+mod siplah;
 mod state;
 mod util;
 

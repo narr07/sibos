@@ -138,6 +138,10 @@ export interface PengaturanView {
 
 export interface SiplahToko {
 	id: number
+	/** "tokoladang" | "gramedia" | "intan" | "temprina" | "masmedia" */
+	platform: string
+	/** ID atau slug toko di situs asal. */
+	kode: string | null
 	nama: string
 	slug: string | null
 	url: string
@@ -159,11 +163,16 @@ export interface SiplahProduk {
 	id: number
 	tokoId: number
 	nama: string
+	/** Harga terendah, atau satu-satunya harga. */
 	harga: number
+	/** Harga zona tertinggi; null bila hanya satu harga. */
+	hargaMax: number | null
 	stok: number
 	terjual: number
 	gambar: string | null
 	kenaPajak: boolean
+	/** Halaman produk di situs asal. */
+	url: string | null
 }
 
 export interface SiplahMatchCandidate {
@@ -226,6 +235,8 @@ export interface SiplahSyncResult {
 	tokoId: number
 	total: number
 	terakhirSync: string
+	/** Toko punya lebih banyak produk dari batas halaman per sinkron. */
+	terpotong: boolean
 }
 
 /** Payload event `siplah-sync-progress`: dikirim tiap satu halaman produk selesai diambil. */

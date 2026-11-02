@@ -6,7 +6,7 @@
 			color="neutral"
 			variant="subtle"
 			title="Belum ada toko SIPLah tersimpan"
-			description="Tambahkan toko Toko Ladang lewat menu Toko SIPLah, lalu sinkronkan katalognya."
+			description="Tambahkan toko SIPLah (Toko Ladang, Gramedia, Intan Pariwara, Temprina, atau Masmedia) lewat menu Toko SIPLah, lalu sinkronkan katalognya."
 			:actions="[{ label: 'Buka Toko SIPLah', to: '/penganggaran/siplah', color: 'neutral', variant: 'outline' }]"
 		/>
 
@@ -113,7 +113,7 @@
 					</template>
 					<template #produk-cell="{ row }">
 						<template v-if="row.original.matchedProduct">
-							<ULink :to="produkUrl(row.original.matchedProduct.id)" target="_blank" class="whitespace-normal text-highlighted hover:underline">
+							<ULink :to="urlProduk(row.original.matchedProduct)" target="_blank" class="whitespace-normal text-highlighted hover:underline">
 								{{ row.original.matchedProduct.nama }}
 							</ULink>
 							<p class="text-xs text-muted">
@@ -140,7 +140,7 @@
 								icon="i-lucide-check"
 								:disabled="!row.original.matchedProduct || row.original.selisih === 0"
 								:loading="menyimpan === row.original.sourceId"
-								title="Ganti harga satuan item draft dengan harga toko (berlaku untuk semua bulan)"
+								title="Ganti harga satuan item draft dengan harga toko (berlaku untuk semua bulan; harga zona memakai yang tertinggi)"
 								@click="pakaiHarga(row.original)"
 							>
 								Pakai harga
@@ -151,7 +151,7 @@
 			</div>
 
 			<p v-else-if="!loading" class="py-12 text-center text-muted">
-				Pilih toko, lalu klik Bandingkan untuk melihat harga Toko Ladang dan perkiraan biaya draft ini.
+				Pilih toko, lalu klik Bandingkan untuk melihat harga toko SIPLah dan perkiraan biaya draft ini.
 			</p>
 		</template>
 	</div>
@@ -177,7 +177,7 @@
 	const filterStatus = ref<"semua" | SiplahMatchItem["status"]>("semua");
 	const menyimpan = ref<string | null>(null);
 
-	const tokoItems = computed(() => tokoList.value.map((t) => ({ label: t.nama, value: t.id })));
+	const tokoItems = computed(() => tokoList.value.map((t) => ({ label: `${t.nama} · ${labelPlatform(t.platform)}`, value: t.id })));
 	const tokoAktif = computed(() => tokoList.value.find((t) => t.id === tokoId.value));
 	const bulanItems = [{ label: "Setahun", value: 0 }, ...BULAN.map((label, i) => ({ label, value: i + 1 }))];
 	const statusItems = [
@@ -188,14 +188,13 @@
 		{ label: "Tidak ditemukan", value: "tidak_cocok" }
 	];
 
-	const produkUrl = (id: number) => `https://siplah.tokoladang.co.id/p/produk.${id}`;
 	const warnaSelisih = (selisih: number) => (selisih < 0 ? "text-success" : selisih > 0 ? "text-error" : "text-muted");
 
 	const nominal = { th: "text-right", td: "text-right tabular whitespace-nowrap" };
 	const columns: TableColumn<SiplahMatchItem>[] = [
 		{ id: "uraian", header: "Item draft", meta: { class: { td: "min-w-64" } } },
-		{ id: "produk", header: "Produk Toko Ladang", meta: { class: { td: "min-w-64" } } },
-		{ id: "hargaToko", header: "Harga toko", cell: ({ row }) => (row.original.matchedProduct ? angka(row.original.matchedProduct.harga) : "-"), meta: { class: nominal } },
+		{ id: "produk", header: "Produk toko", meta: { class: { td: "min-w-64" } } },
+		{ id: "hargaToko", header: "Harga toko", cell: ({ row }) => (row.original.matchedProduct ? labelHarga(row.original.matchedProduct) : "-"), meta: { class: nominal } },
 		{ id: "selisih", header: "Selisih / satuan", meta: { class: nominal } },
 		{ id: "perkiraan", header: "Perkiraan jumlah", cell: ({ row }) => angka(estimasiToko(row.original) ?? row.original.totalRkas), meta: { class: nominal } },
 		{ id: "aksi", header: "", meta: { class: { th: "w-40", td: "whitespace-nowrap" } } }
@@ -245,7 +244,7 @@
 
 	const pilihanKandidat = (it: SiplahMatchItem): DropdownMenuItem[] =>
 		it.candidates.map((c) => ({
-			label: `${c.produk.nama} · ${rupiah(c.produk.harga)}`,
+			label: `${c.produk.nama} · ${labelHarga(c.produk)}`,
 			icon: c.produk.id === it.matchedProduct?.id ? "i-lucide-check" : undefined,
 			onSelect: () => {
 				pasangProduk(it, c.produk);
@@ -254,19 +253,21 @@
 			}
 		}));
 
-	/** Simpan harga toko sebagai harga satuan item draft (semua bulan ikut berubah). */
+	/** Simpan harga toko sebagai harga satuan item draft (semua bulan ikut berubah).
+	 * Harga zona memakai harga tertinggi, sama dengan perkiraan. */
 	const pakaiHarga = async (it: SiplahMatchItem) => {
 		const produk = it.matchedProduct;
 		const item = props.items.find((i) => i.id === it.sourceId);
 		if (!produk || !item) return;
+		const harga = hargaBanding(produk);
 		menyimpan.value = it.sourceId;
 		try {
-			await api.rkasDraftItemSave(props.draft.id, { ...structuredClone(toRaw(item)), hargaSatuan: produk.harga });
-			it.hargaRkas = produk.harga;
-			it.totalRkas = Math.round(it.volume * produk.harga);
+			await api.rkasDraftItemSave(props.draft.id, { ...structuredClone(toRaw(item)), hargaSatuan: harga });
+			it.hargaRkas = harga;
+			it.totalRkas = Math.round(it.volume * harga);
 			pasangProduk(it, produk);
 			if (report.value) report.value.summary = ringkasanSiplah(report.value.items);
-			toast.add({ title: "Harga dipakai", description: `${item.uraian}: ${rupiah(produk.harga)} per ${item.satuan ?? "satuan"}`, color: "success" });
+			toast.add({ title: "Harga dipakai", description: `${item.uraian}: ${rupiah(harga)} per ${item.satuan ?? "satuan"}`, color: "success" });
 			emit("applied");
 		} catch (err) {
 			toast.add({ title: "Gagal menyimpan harga", description: errorMessage(err), color: "error" });

@@ -27,7 +27,9 @@ export const useSiplahSync = (onDone: (res: SiplahSyncResult) => Promise<void> |
 			: null;
 		try {
 			const res = await api.siplahSyncProducts(tokoId);
-			toast.add({ title: "Sinkronisasi berhasil", description: `Berhasil mengambil ${res.total} produk dari SIPLah.`, color: "success" });
+			toast.add(res.terpotong
+				? { title: "Sinkronisasi sebagian", description: `Toko ini sangat besar; ${res.total} produk pertama yang diambil. Barang yang tidak ditemukan mungkin ada di luar batas ini.`, color: "warning" }
+				: { title: "Sinkronisasi berhasil", description: `Berhasil mengambil ${res.total} produk dari SIPLah.`, color: "success" });
 			await onDone(res);
 		} catch (err) {
 			if (cancelling.value) {

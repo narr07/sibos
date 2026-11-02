@@ -1,9 +1,8 @@
 //! Fitur belanja SIPLah dan pencocokan harga barang dengan RKAS / standar harga.
-//! Scrape profil dan produk toko dari SIPLah Toko Ladang, simpan di sibos.db,
+//! Ambil profil dan produk toko dari situs mitra SIPLah (lihat `crate::siplah`), simpan di sibos.db,
 //! dan lakukan pencocokan nama & harga.
 
 use std::collections::HashMap;
-use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::sync::atomic::Ordering;
 
@@ -15,9 +14,8 @@ use crate::error::{validate_year, AppError, AppResult};
 use crate::repo::app::siplah::{SiplahProduk, SiplahToko};
 use crate::repo::arkas::bku;
 use crate::repo::arkas::rkas::{self, StandarHarga};
+use crate::siplah::{self, Platform};
 use crate::state::AppState;
-
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 const STOP_WORDS: &[&str] = &[
 	"dan", "atau", "untuk", "dari", "pada", "ke", "di", "dengan",
@@ -25,38 +23,6 @@ const STOP_WORDS: &[&str] = &[
 	"buah", "rim", "kotak", "botol", "tahun", "anggaran", "belanja",
 	"pengadaan", "biaya", "kegiatan", "sub", "keg",
 ];
-
-#[derive(Debug, Deserialize)]
-struct MerchantRaw {
-	id: i64,
-	name: String,
-	slug: Option<String>,
-	address: Option<String>,
-	postal_code: Option<String>,
-	slogan: Option<String>,
-	#[serde(rename = "type")]
-	tipe: Option<String>,
-	image: Option<String>,
-	province: Option<NamedRaw>,
-	city: Option<NamedRaw>,
-	district: Option<NamedRaw>,
-}
-
-#[derive(Debug, Deserialize)]
-struct NamedRaw {
-	name: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ProductRaw {
-	id: i64,
-	name: String,
-	price: Option<f64>,
-	qty_available: Option<i64>,
-	qty_sell: Option<i64>,
-	image: Option<String>,
-	taxed: Option<bool>,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -127,116 +93,23 @@ pub struct SiplahSyncResult {
 	pub toko_id: i64,
 	pub total: i64,
 	pub terakhir_sync: String,
+	/// true bila toko punya lebih banyak produk dari batas halaman per sinkron.
+	pub terpotong: bool,
 }
 
-/// Ekstrak ID toko SIPLah dari URL atau string (mis. "kpr-rajagaluh.92186" -> 92186).
-pub fn extract_toko_id(input: &str) -> Option<i64> {
-	let trimmed = input.trim();
-	if let Ok(id) = trimmed.parse::<i64>() {
-		return Some(id);
-	}
-	let path_part = trimmed.split('?').next().unwrap_or(trimmed).trim_end_matches('/');
-	let last_seg = path_part.rsplit('/').next().unwrap_or(path_part);
-	if let Some(pos) = last_seg.rfind('.') {
-		if let Ok(id) = last_seg[pos + 1..].parse::<i64>() {
-			return Some(id);
-		}
-	}
-	let re_digits: String = last_seg.chars().filter(|c| c.is_ascii_digit()).collect();
-	re_digits.parse::<i64>().ok()
-}
-
-fn fetch_json_with_curl(url: &str) -> AppResult<String> {
-	let mut cmd = std::process::Command::new("C:\\Windows\\System32\\curl.exe");
-	cmd.creation_flags(CREATE_NO_WINDOW);
-	cmd.args([
-		// --fail: status HTTP 4xx/5xx jadi error (exit 22), bukan halaman error yang dikira JSON.
-		"--fail",
-		"-sS",
-		"-L",
-		"--max-time",
-		"30",
-		"-H",
-		"Accept: application/json, text/plain, */*",
-		"-H",
-		"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-		url,
-	]);
-	let output = cmd.output().map_err(|e| AppError::Io(std::io::Error::other(format!("gagal menjalankan curl: {e}"))))?;
-	if !output.status.success() {
-		let detail = String::from_utf8_lossy(&output.stderr).trim().trim_start_matches("curl: ").to_string();
-		return Err(AppError::InvalidInput(curl_error_message(output.status.code(), &detail)));
-	}
-	let body = String::from_utf8_lossy(&output.stdout).to_string();
-	Ok(body)
-}
-
-/// Pesan yang bisa dipahami bendahara untuk kode exit curl yang umum.
-fn curl_error_message(code: Option<i32>, detail: &str) -> String {
-	let pesan = match code {
-		Some(6) => "Server SIPLah tidak ditemukan. Periksa koneksi internet.",
-		Some(7) => "Tidak bisa terhubung ke server SIPLah. Periksa koneksi internet.",
-		Some(22) => "Server SIPLah menolak permintaan (toko tidak ada atau layanan sedang bermasalah).",
-		Some(28) => "Server SIPLah tidak menjawab dalam 30 detik. Coba lagi nanti.",
-		Some(35 | 60) => "Gagal membuat koneksi aman (SSL) ke server SIPLah.",
-		_ => "Gagal menghubungi server SIPLah.",
-	};
-	if detail.is_empty() {
-		pesan.to_string()
-	} else {
-		format!("{pesan} ({detail})")
-	}
-}
-
-fn normalize_image_url(raw: Option<String>) -> Option<String> {
-	let img = raw?.trim().to_string();
-	if img.is_empty() {
-		return None;
-	}
-	if img.starts_with("http://") || img.starts_with("https://") {
-		if img.contains("worker-siplah.tokoladang.co.id") {
-			Some(img.replace("worker-siplah.tokoladang.co.id", "siplah-oss.tokoladang.co.id"))
-		} else {
-			Some(img)
-		}
-	} else {
-		Some(format!("https://siplah-oss.tokoladang.co.id/{}", img.trim_start_matches('/')))
-	}
-}
-
+/// Kenali link toko (platform apa pun yang didukung) lalu ambil profilnya untuk pratinjau.
 #[tauri::command(async)]
 pub fn siplah_inspect_url(url: String) -> AppResult<SiplahToko> {
-	let id = extract_toko_id(&url).ok_or_else(|| AppError::InvalidInput("Link toko SIPLah tidak valid. Contoh: https://siplah.tokoladang.co.id/m/kpr-rajagaluh.92186".into()))?;
-	let endpoint = format!("https://api-siplah.tokoladang.co.id/public/merchants/{id}");
-	let json_str = fetch_json_with_curl(&endpoint)?;
-	let raw: MerchantRaw = serde_json::from_str(&json_str)
-		.map_err(|e| AppError::InvalidInput(format!("Toko SIPLah ID {id} tidak ditemukan atau respons tidak valid: {e}")))?;
+	let (platform, kode) = siplah::kenali(&url)?;
+	siplah::ambil_toko(platform, &kode)
+}
 
-	let formatted_url = if url.trim().starts_with("http") {
-		url.trim().to_string()
-	} else {
-		format!("https://siplah.tokoladang.co.id/m/{}.{}", raw.slug.as_deref().unwrap_or("toko"), raw.id)
-	};
-
-	let toko = SiplahToko {
-		id: raw.id,
-		nama: raw.name,
-		slug: raw.slug,
-		url: formatted_url,
-		tipe: raw.tipe,
-		slogan: raw.slogan,
-		alamat: raw.address,
-		provinsi: raw.province.and_then(|p| p.name),
-		kabupaten: raw.city.and_then(|c| c.name),
-		kecamatan: raw.district.and_then(|d| d.name),
-		kodepos: raw.postal_code,
-		gambar: normalize_image_url(raw.image),
-		total_produk: 0,
-		terakhir_sync: None,
-		created_at: String::new(),
-		updated_at: String::new(),
-	};
-	Ok(toko)
+/// Platform dan kode toko yang tersimpan. Toko lama (sebelum multi-platform) adalah Toko Ladang.
+fn platform_toko(toko: &SiplahToko) -> AppResult<(Platform, String)> {
+	let platform = Platform::from_kode(&toko.platform)
+		.ok_or_else(|| AppError::InvalidInput(format!("Platform SIPLah \"{}\" tidak dikenal", toko.platform)))?;
+	let kode = toko.kode.clone().filter(|k| !k.is_empty()).unwrap_or_else(|| toko.id.to_string());
+	Ok((platform, kode))
 }
 
 #[tauri::command(async)]
@@ -248,6 +121,11 @@ pub fn siplah_toko_list(state: State<'_, AppState>) -> AppResult<Vec<SiplahToko>
 pub fn siplah_toko_save(state: State<'_, AppState>, toko: SiplahToko) -> AppResult<()> {
 	if toko.nama.trim().is_empty() {
 		return Err(AppError::InvalidInput("Nama toko wajib diisi".into()));
+	}
+	// ID harus sesuai platform + kode agar toko yang sama tidak tersimpan dua kali.
+	let (platform, kode) = platform_toko(&toko)?;
+	if siplah::toko_id(platform, &kode)? != toko.id {
+		return Err(AppError::InvalidInput("Data toko tidak cocok dengan platformnya. Periksa ulang link toko.".into()));
 	}
 	state.app_db().siplah_toko_save(&toko)
 }
@@ -283,66 +161,34 @@ pub fn siplah_sync_cancel(state: State<'_, AppState>) -> AppResult<()> {
 #[tauri::command(async)]
 pub fn siplah_sync_products(app: AppHandle, state: State<'_, AppState>, toko_id: i64) -> AppResult<SiplahSyncResult> {
 	state.siplah_cancel.store(false, Ordering::SeqCst);
-	// Pastikan profil toko diperbarui
-	let merchant_endpoint = format!("https://api-siplah.tokoladang.co.id/public/merchants/{toko_id}");
-	if let Ok(json_str) = fetch_json_with_curl(&merchant_endpoint) {
-		if let Ok(raw) = serde_json::from_str::<MerchantRaw>(&json_str) {
-			let _ = state.app_db().siplah_toko_save(&SiplahToko {
-				id: raw.id,
-				nama: raw.name,
-				slug: raw.slug.clone(),
-				url: format!("https://siplah.tokoladang.co.id/m/{}.{}", raw.slug.as_deref().unwrap_or("toko"), raw.id),
-				tipe: raw.tipe,
-				slogan: raw.slogan,
-				alamat: raw.address,
-				provinsi: raw.province.and_then(|p| p.name),
-				kabupaten: raw.city.and_then(|c| c.name),
-				kecamatan: raw.district.and_then(|d| d.name),
-				kodepos: raw.postal_code,
-				gambar: normalize_image_url(raw.image),
-				total_produk: 0,
-				terakhir_sync: None,
-				created_at: String::new(),
-				updated_at: String::new(),
-			});
-		}
+	let toko = state
+		.app_db()
+		.siplah_toko_get(toko_id)?
+		.ok_or_else(|| AppError::InvalidInput(format!("Toko dengan ID {toko_id} belum tersimpan.")))?;
+	let (platform, kode) = platform_toko(&toko)?;
+
+	// Perbarui profil toko; kegagalan di sini tidak menghentikan pengambilan produk.
+	if let Ok(mut terbaru) = siplah::ambil_toko(platform, &kode) {
+		terbaru.id = toko_id;
+		let _ = state.app_db().siplah_toko_save(&terbaru);
 	}
 
 	let mut all_products: Vec<SiplahProduk> = Vec::new();
-	// Ambil semua halaman produk sampai habis
-	for page in 1..=100 {
+	let mut terpotong = false;
+	for page in 1..=platform.max_halaman() {
 		if state.siplah_cancel.swap(false, Ordering::SeqCst) {
 			return Err(AppError::InvalidInput("Sinkronisasi dibatalkan. Katalog toko tidak berubah.".into()));
 		}
-		let endpoint = format!("https://api-siplah.tokoladang.co.id/public/products/merchant/{toko_id}?page={page}&sort=");
-		let json_str = fetch_json_with_curl(&endpoint)?;
-		let items: Vec<ProductRaw> = serde_json::from_str(&json_str)
-			.map_err(|e| AppError::InvalidInput(format!("Gagal membaca data produk halaman {page}: {e}")))?;
-
-		if items.is_empty() {
-			break;
+		if page > 1 {
+			std::thread::sleep(std::time::Duration::from_millis(platform.jeda_ms()));
 		}
-
-		let count = items.len();
-		for it in items {
-			let harga = it.price.map(|p| p.round() as i64).unwrap_or(0);
-			all_products.push(SiplahProduk {
-				id: it.id,
-				toko_id,
-				nama: it.name.trim().to_string(),
-				harga,
-				stok: it.qty_available.unwrap_or(0),
-				terjual: it.qty_sell.unwrap_or(0),
-				gambar: normalize_image_url(it.image),
-				kena_pajak: it.taxed.unwrap_or(true),
-			});
-		}
-
+		let hasil = siplah::ambil_halaman(platform, &kode, toko_id, page)?;
+		all_products.extend(hasil.produk);
 		let _ = app.emit("siplah-sync-progress", SiplahSyncProgress { toko_id, halaman: page, produk: all_products.len() });
-
-		if count < 30 {
+		if !hasil.ada_lagi {
 			break;
 		}
+		terpotong = page == platform.max_halaman();
 	}
 
 	let total = state.app_db().siplah_produk_save_batch(toko_id, &all_products)?;
@@ -353,6 +199,7 @@ pub fn siplah_sync_products(app: AppHandle, state: State<'_, AppState>, toko_id:
 		toko_id,
 		total,
 		terakhir_sync: synced_at,
+		terpotong,
 	})
 }
 
@@ -429,7 +276,7 @@ fn match_totals(items: &[SiplahMatchItem]) -> MatchTotals {
 		if let Some(p) = &it.matched_product {
 			let vol = if it.volume > 0.0 { it.volume } else { 1.0 };
 			t.anggaran_cocok += it.total_rkas;
-			t.estimasi += (p.harga as f64 * vol).round() as i64;
+			t.estimasi += (p.harga_banding() as f64 * vol).round() as i64;
 		}
 	}
 	t
@@ -654,7 +501,7 @@ pub fn siplah_match_prices(
 
 		let (matched_product, score, status, selisih, persen_selisih) = match best_match {
 			Some(best) => {
-				let diff = best.produk.harga - it.harga;
+				let diff = best.produk.harga_banding() - it.harga;
 				let pct = if it.harga > 0 {
 					(diff as f64 / it.harga as f64) * 100.0
 				} else {
@@ -813,7 +660,7 @@ pub fn siplah_export_match_xlsx(
 		match &it.matched_product {
 			Some(p) => {
 				worksheet.write_string_with_format(r, 6, &p.nama, &border_format)?;
-				worksheet.write_number_with_format(r, 7, p.harga as f64, &num_format)?;
+				worksheet.write_number_with_format(r, 7, p.harga_banding() as f64, &num_format)?;
 
 				let diff_fmt = if it.selisih <= 0 { &hijau_format } else { &merah_format };
 				worksheet.write_number_with_format(r, 8, it.selisih as f64, diff_fmt)?;
@@ -860,10 +707,12 @@ mod tests {
 				toko_id: 1,
 				nama: "p".into(),
 				harga,
+				harga_max: None,
 				stok: 0,
 				terjual: 0,
 				gambar: None,
 				kena_pajak: true,
+				url: None,
 			}),
 			score: 0,
 			status: String::new(),
@@ -884,25 +733,6 @@ mod tests {
 		assert_eq!(t.estimasi, 90_000);
 		assert_eq!(t.anggaran_cocok - t.estimasi, 10_000, "hemat");
 		assert_eq!(t.estimasi + (t.anggaran - t.anggaran_cocok), 140_000, "perkiraan total");
-	}
-
-	#[test]
-	fn curl_errors_are_readable() {
-		assert!(curl_error_message(Some(22), "").contains("menolak"));
-		assert!(curl_error_message(Some(28), "").contains("30 detik"));
-		assert_eq!(
-			curl_error_message(Some(6), "Could not resolve host"),
-			"Server SIPLah tidak ditemukan. Periksa koneksi internet. (Could not resolve host)"
-		);
-		assert_eq!(curl_error_message(None, ""), "Gagal menghubungi server SIPLah.");
-	}
-
-	#[test]
-	fn extracts_id_from_url_and_slug() {
-		assert_eq!(extract_toko_id("https://siplah.tokoladang.co.id/m/kpr-rajagaluh.92186?page=1&etalase=&keyword="), Some(92186));
-		assert_eq!(extract_toko_id("kpr-rajagaluh.92186"), Some(92186));
-		assert_eq!(extract_toko_id("92186"), Some(92186));
-		assert_eq!(extract_toko_id("https://siplah.tokoladang.co.id/m/toko-abc.12345/"), Some(12345));
 	}
 
 	#[test]

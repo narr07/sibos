@@ -117,6 +117,8 @@ const MIGRATIONS: &[&str] = &[
 	dokumen::MIGRATION,
 	// 8: toko & produk siplah
 	siplah::MIGRATION,
+	// 9: banyak platform SIPLah (Gramedia, Intan, Temprina, Masmedia) dan harga zona
+	siplah::MIGRATION_PLATFORM,
 ];
 
 pub struct AppDb {
