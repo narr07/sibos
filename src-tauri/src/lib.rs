@@ -1,3 +1,4 @@
+mod bla_shield;
 mod commands;
 mod error;
 mod export;

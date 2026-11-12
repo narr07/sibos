@@ -36,18 +36,31 @@ fn map_open_error(err: rusqlite::Error) -> AppError {
 	}
 }
 
-fn open_readonly(path: &Path, key: &str) -> Result<Connection, rusqlite::Error> {
+fn open_readonly_with_compat(path: &Path, key: &str, compat: Option<i32>) -> Result<Connection, rusqlite::Error> {
 	let conn = Connection::open_with_flags(
 		path,
 		OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
 	)?;
 	// Kunci SQLCipher harus jadi perintah pertama setelah open.
 	conn.pragma_update(None, "key", key)?;
+	if let Some(c) = compat {
+		conn.pragma_update(None, "cipher_compatibility", c)?;
+	}
 	conn.pragma_update(None, "query_only", true)?;
 	conn.busy_timeout(Duration::from_secs(3))?;
 	// Membaca sqlite_master memaksa dekripsi halaman pertama: kunci salah langsung ketahuan.
 	conn.query_row("SELECT count(*) FROM sqlite_master", [], |row| row.get::<_, i64>(0))?;
 	Ok(conn)
+}
+
+fn open_readonly(path: &Path, key: &str) -> Result<Connection, rusqlite::Error> {
+	match open_readonly_with_compat(path, key, None) {
+		Ok(conn) => Ok(conn),
+		Err(err) if err.sqlite_error_code() == Some(ErrorCode::NotADatabase) => {
+			open_readonly_with_compat(path, key, Some(3)).or(Err(err))
+		}
+		Err(err) => Err(err),
+	}
 }
 
 impl ArkasDb {

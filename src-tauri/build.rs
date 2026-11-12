@@ -1,15 +1,18 @@
 //! Build script.
 //!
-//! Kunci bawaan ARKAS (opsional): bila file `.env` di root proyek berisi `SIBOS_ARKAS_KEY=...`,
-//! kunci ditanam ke exe dalam bentuk tersamar (XOR dengan pad acak yang berbeda tiap build),
-//! sehingga teks aslinya tidak ada di dalam exe. `.env` tidak ikut repo (lihat .gitignore);
-//! tanpa `.env`, exe tetap meminta kunci di halaman Koneksi ARKAS.
-//! Ini penyamaran, bukan enkripsi kuat: exe yang dibongkar tetap bisa mengungkap kunci.
+//! Pengaturan build native binary, aset, dan perlindungan runtime.
 
+use std::fmt::Write as _;
 use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
+
+use aes_gcm::aead::{Aead, AeadCore, KeyInit, OsRng, Payload};
+use aes_gcm::Aes256Gcm;
 
 const ENV_NAME: &str = "SIBOS_ARKAS_KEY";
+const KEYRING_SERVICE: &str = "sibos";
+const KEYRING_ACCOUNT: &str = "arkas-db-key";
+/// Harus sama dengan `AAD` di src/secret.rs.
+const AAD: &[u8] = b"lajur/arkas-key/v2";
 
 /// Ambil nilai `SIBOS_ARKAS_KEY` dari file `.env` (format `NAMA=nilai`, boleh diberi tanda kutip).
 fn key_from_env_file(path: &PathBuf) -> Option<String> {
@@ -24,34 +27,83 @@ fn key_from_env_file(path: &PathBuf) -> Option<String> {
 	})
 }
 
-/// Pad acak sepanjang `len` (xorshift64 dengan benih waktu build).
-fn random_pad(len: usize) -> Vec<u8> {
-	let mut seed = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos() as u64).unwrap_or(0x9E37_79B9) | 1;
-	(0..len)
-		.map(|_| {
-			seed ^= seed << 13;
-			seed ^= seed >> 7;
-			seed ^= seed << 17;
-			(seed >> 24) as u8
-		})
-		.collect()
+/// Urutan sumber kunci saat build: `.env` -> variabel lingkungan -> Windows Credential Manager.
+fn load_build_key(env_file: &PathBuf) -> Option<String> {
+	if let Some(k) = key_from_env_file(env_file) {
+		return Some(k);
+	}
+	if let Ok(k) = std::env::var(ENV_NAME) {
+		let k = k.trim().to_string();
+		if !k.is_empty() {
+			return Some(k);
+		}
+	}
+	keyring::Entry::new(KEYRING_SERVICE, KEYRING_ACCOUNT)
+		.ok()
+		.and_then(|entry| entry.get_password().ok())
+		.filter(|k| !k.is_empty())
+}
+
+fn random_bytes<const N: usize>() -> [u8; N] {
+	let mut out = [0u8; N];
+	aes_gcm::aead::rand_core::RngCore::fill_bytes(&mut OsRng, &mut out);
+	out
+}
+
+fn emit(out: &mut String, name: &str, bytes: &[u8]) {
+	writeln!(out, "static {name}: [u8; {}] = {bytes:?};", bytes.len()).unwrap();
 }
 
 fn main() {
 	let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
 	let env_file = manifest.parent().unwrap().join(".env");
 	println!("cargo:rerun-if-changed={}", env_file.display());
+	println!("cargo:rerun-if-env-changed={ENV_NAME}");
+	println!("cargo:rerun-if-env-changed=SIBOS_ALLOW_NO_KEY");
 
-	let (pad, data) = match key_from_env_file(&env_file) {
+	let mut code = String::new();
+	match load_build_key(&env_file) {
 		Some(key) => {
-			let pad = random_pad(key.len());
-			let data: Vec<u8> = key.bytes().zip(&pad).map(|(b, p)| b ^ p).collect();
-			(pad, data)
+			let aes_key = Aes256Gcm::generate_key(&mut OsRng);
+			let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+			let sealed = Aes256Gcm::new(&aes_key)
+				.encrypt(&nonce, Payload { msg: key.as_bytes(), aad: AAD })
+				.expect("enkripsi kunci ARKAS gagal");
+
+			let part_a: [u8; 32] = random_bytes();
+			let part_b: [u8; 32] = random_bytes();
+			let part_c: Vec<u8> =
+				aes_key.iter().zip(&part_a).zip(&part_b).map(|((k, a), b)| k ^ a ^ b).collect();
+
+			// Urutan dan nama sengaja tidak berurutan supaya bagian-bagian tidak bersebelahan.
+			emit(&mut code, "EMBED_B", &part_b);
+			emit(&mut code, "EMBED_SEALED", &sealed);
+			emit(&mut code, "EMBED_A", &part_a);
+			emit(&mut code, "EMBED_NONCE", &nonce);
+			emit(&mut code, "EMBED_C", &part_c);
 		}
-		None => (Vec::new(), Vec::new()),
-	};
+		None => {
+			// Installer tanpa kunci hanya jalan di komputer yang sudah menyimpan kunci di
+			// Credential Manager; di laptop lain aplikasi gagal membuka ARKAS. Build rilis
+			// ditolak kecuali memang disengaja (SIBOS_ALLOW_NO_KEY=1).
+			let release = std::env::var("PROFILE").as_deref() == Ok("release");
+			if release && std::env::var_os("SIBOS_ALLOW_NO_KEY").is_none() {
+				panic!(
+					"Build rilis tanpa kunci ARKAS: buat {} berisi {ENV_NAME}=<kunci>, \
+					 atau set SIBOS_ALLOW_NO_KEY=1 bila memang ingin installer tanpa kunci bawaan.",
+					env_file.display()
+				);
+			}
+			for name in ["EMBED_A", "EMBED_B", "EMBED_C"] {
+				emit(&mut code, name, &[0u8; 32]);
+			}
+			emit(&mut code, "EMBED_NONCE", &[0u8; 12]);
+			emit(&mut code, "EMBED_SEALED", &[]);
+		}
+	}
+
 	let out = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("embedded_key.rs");
-	std::fs::write(out, format!("const EMBED_PAD: &[u8] = &{pad:?};\nconst EMBED_DATA: &[u8] = &{data:?};\n")).unwrap();
+	std::fs::write(out, code).unwrap();
 
 	tauri_build::build()
 }

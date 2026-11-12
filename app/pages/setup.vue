@@ -79,11 +79,13 @@
 						</UFieldGroup>
 					</UFormField>
 
-					<UFormField label="Kunci database" :description="status?.hasStoredKey ? 'Kunci tersimpan sudah ada. Kosongkan untuk memakai kunci tersimpan.' : 'Kunci enkripsi database ARKAS.'">
-						<UInput v-model="form.key" type="password" autocomplete="off" />
-					</UFormField>
+					<template v-if="needManualKey">
+						<UFormField label="Kunci database" description="Kunci enkripsi database ARKAS.">
+							<UInput v-model="form.key" type="password" autocomplete="off" />
+						</UFormField>
 
-					<UCheckbox v-model="form.rememberKey" label="Simpan kunci di Windows Credential Manager" />
+						<UCheckbox v-model="form.rememberKey" label="Simpan kunci di Windows Credential Manager" />
+					</template>
 
 					<div class="flex justify-end">
 						<UButton type="submit" icon="i-lucide-plug" :loading="loading">
@@ -105,6 +107,7 @@
 	const toast = useToast();
 
 	const form = reactive({ path: "", key: "", rememberKey: true });
+	const needManualKey = computed(() => !status.value?.hasStoredKey || status.value?.state === "bad_key" || status.value?.state === "no_key");
 
 	watchEffect(() => {
 		if (!form.path && status.value?.path) form.path = status.value.path;

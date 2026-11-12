@@ -275,7 +275,7 @@ pub fn backup_arkas_db(state: State<'_, AppState>, path: String) -> AppResult<St
 		return Err(AppError::InvalidInput("lokasi tujuan sama dengan file ARKAS asli".into()));
 	}
 	arkas::conn::copy_consistent(&source, &target)?;
-	merge_wal(&target, crate::secret::load_key().ok().flatten().as_deref());
+	merge_wal(&target, crate::secret::load_key().ok().flatten().as_ref().map(|k| k.as_str()));
 	Ok(target.display().to_string())
 }
 

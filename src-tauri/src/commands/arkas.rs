@@ -102,13 +102,13 @@ pub fn arkas_connect(
 		return Ok(build_status(&state, None, Some(&err)));
 	};
 
-	let given_key = key.filter(|k| !k.is_empty());
+	let given_key = key.filter(|k| !k.is_empty()).map(zeroize::Zeroizing::new);
 	let key = match &given_key {
 		Some(k) => Some(k.clone()),
 		None => secret::load_key()?,
 	};
 
-	let result = match key.as_deref() {
+	let result = match key.as_ref().map(|k| k.as_str()) {
 		None => Err(AppError::ArkasNoKey),
 		Some(k) => ArkasDb::open(&path_buf, k),
 	};
@@ -120,7 +120,7 @@ pub fn arkas_connect(
 				.app_db()
 				.setting_set(SETTING_ARKAS_PATH, &json!(path_buf.display().to_string()))?;
 			if let (Some(k), Some(true)) = (&given_key, remember_key) {
-				secret::save_key(k)?;
+				secret::save_key(k.as_str())?;
 			}
 			Ok(build_status(&state, Some(&path_buf), None))
 		}
