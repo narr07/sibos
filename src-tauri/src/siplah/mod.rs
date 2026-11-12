@@ -227,7 +227,7 @@ mod tests {
 		let a = stable_id(Platform::Gramedia, "abc");
 		assert_eq!(a, stable_id(Platform::Gramedia, "abc"));
 		assert_ne!(a, stable_id(Platform::Intan, "abc"));
-		assert!(a < 0 && a >= -(1_i64 << 52));
+		assert!((-(1_i64 << 52)..0).contains(&a));
 		assert_eq!(toko_id(Platform::TokoLadang, "92186").unwrap(), 92186);
 	}
 

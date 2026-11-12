@@ -1,6 +1,6 @@
 [package]
 name = "sibos"
-version = "0.4.1"
+version = "0.4.2"
 description = "Aplikasi pendamping ARKAS untuk SPJ BOSP"
 license = "MIT"
 edition = "2021"
@@ -14,9 +14,15 @@ crate-type = [
 ]
 
 [build-dependencies]
+aes-gcm = "=0.10.3"
+keyring = { version = "3", features = [ "windows-native" ] }
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+aes-gcm = { version = "=0.10.3", default-features = false, features = [
+	"aes",
+	"alloc"
+] }
 base64 = "0.23.1"
 image = { version = "0.25.10", default-features = false, features = [
 	"jpeg",
@@ -36,6 +42,7 @@ tauri-plugin-store = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-window-state = "2"
 thiserror = "2.0.21"
+zeroize = "=1.8.1"
 zip = { version = "8", default-features = false, features = [ "deflate-flate2-zlib-rs" ] }
 
 # `tauri dev`: dependensi (SQLCipher, OpenSSL, rusqlite, dll.) tetap dioptimalkan. Tanpa ini SQLCipher
