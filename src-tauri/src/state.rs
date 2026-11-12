@@ -25,7 +25,7 @@ impl AppState {
 	}
 
 	pub fn db_path(&self) -> PathBuf {
-		self.data_dir.join("sibos.db")
+		if self.data_dir.join("silajur.db").exists() || !self.data_dir.join("sibos.db").exists() { self.data_dir.join("silajur.db") } else { self.data_dir.join("sibos.db") }
 	}
 
 	pub fn app_db(&self) -> MutexGuard<'_, AppDb> {

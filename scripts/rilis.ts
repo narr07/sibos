@@ -14,7 +14,7 @@ import { join } from "node:path";
 import process from "node:process";
 import { $ } from "bun";
 
-const REPO = "narr07/sibos";
+const REPO = "narr07/silajur";
 const root = join(import.meta.dir, "..");
 const conf = JSON.parse(readFileSync(join(root, "src-tauri", "tauri.conf.json"), "utf8"));
 const versi: string = conf.version;
@@ -27,7 +27,7 @@ if (!existsSync(kunci)) {
 	process.exit(1);
 }
 
-console.log(`Build Lajur ${versi} ...`);
+console.log(`Build SiLajur ${versi} ...`);
 await $`bun run tauri build`.cwd(root).env({
 	...process.env,
 	TAURI_SIGNING_PRIVATE_KEY: readFileSync(kunci, "utf8"),
@@ -35,8 +35,8 @@ await $`bun run tauri build`.cwd(root).env({
 });
 
 const bundle = join(root, "src-tauri", "target", "release", "bundle");
-const exe = join(bundle, "nsis", `SIBOS_${versi}_x64-setup.exe`);
-const msi = join(bundle, "msi", `SIBOS_${versi}_x64_en-US.msi`);
+const exe = join(bundle, "nsis", `SiLajur_${versi}_x64-setup.exe`);
+const msi = join(bundle, "msi", `SiLajur_${versi}_x64_en-US.msi`);
 for (const f of [exe, `${exe}.sig`, msi, `${msi}.sig`]) {
 	if (!existsSync(f)) {
 		console.error(`File hasil build tidak ditemukan: ${f}`);
@@ -45,7 +45,7 @@ for (const f of [exe, `${exe}.sig`, msi, `${msi}.sig`]) {
 }
 
 const catatanFile = join(root, "CATATAN_RILIS.md");
-const catatan = existsSync(catatanFile) ? readFileSync(catatanFile, "utf8").trim() : `Lajur ${versi}`;
+const catatan = existsSync(catatanFile) ? readFileSync(catatanFile, "utf8").trim() : `SiLajur ${versi}`;
 
 // Pembaruan otomatis memakai installer NSIS (mode passive, terpasang di Program Files).
 const latest = {
@@ -55,7 +55,7 @@ const latest = {
 	platforms: {
 		"windows-x86_64": {
 			signature: readFileSync(`${exe}.sig`, "utf8").trim(),
-			url: `https://github.com/${REPO}/releases/download/${tag}/SIBOS_${versi}_x64-setup.exe`
+			url: `https://github.com/${REPO}/releases/download/${tag}/SiLajur_${versi}_x64-setup.exe`
 		}
 	}
 };
@@ -67,7 +67,7 @@ for (const f of [exe, msi, latestFile]) console.log(`  ${f}`);
 
 if (terbitkan) {
 	console.log(`\nMenerbitkan ${tag} ke GitHub Releases ...`);
-	await $`gh release create ${tag} ${exe} ${`${exe}.sig`} ${msi} ${`${msi}.sig`} ${latestFile} --repo ${REPO} --title ${`Lajur ${versi}`} --notes ${catatan}`.cwd(root);
+	await $`gh release create ${tag} ${exe} ${`${exe}.sig`} ${msi} ${`${msi}.sig`} ${latestFile} --repo ${REPO} --title ${`SiLajur ${versi}`} --notes ${catatan}`.cwd(root);
 	console.log("Selesai. Aplikasi yang sudah terpasang akan menerima notifikasi pembaruan.");
 } else {
 	console.log("\nBelum diterbitkan. Jalankan `bun run rilis --terbitkan` untuk membuat GitHub Release.");

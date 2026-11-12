@@ -1,8 +1,8 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
-	"productName": "SIBOS",
-	"version": "0.4.2",
-	"identifier": "id.sibos.app",
+	"productName": "SiLajur",
+	"version": "0.4.3",
+	"identifier": "id.silajur.app",
 	"build": {
 		"beforeBuildCommand": "bun run generate",
 		"frontendDist": "../.output/public",
@@ -13,7 +13,7 @@
 		"windows": [
 			{
 				"label": "main",
-				"title": "Lajur",
+				"title": "SiLajur",
 				"width": 1366,
 				"height": 768,
 				"minWidth": 1100,
@@ -35,7 +35,7 @@
 		],
 		"category": "Finance",
 		"shortDescription": "Pendamping ARKAS untuk SPJ BOSP",
-		"longDescription": "SIBOS membaca database ARKAS (hanya baca) untuk menyusun buku kas, laporan, dan bukti SPJ BOSP.",
+		"longDescription": "SiLajur membaca database ARKAS (hanya baca) untuk menyusun buku kas, laporan, dan bukti SPJ BOSP.",
 		"copyright": "© 2026 Dinar Permadi",
 		"icon": [
 			"icons/32x32.png",
@@ -68,7 +68,7 @@
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMwREM5Rjc4QTM4QkMzMzMKUldRenc0dWplSi9jd09UeTFRR0hWQStkSkgybXQ4WnpGMzRUSnZaWCsrZFpGdTBkQkFsM3NNdGQK",
 			"endpoints": [
-				"https://github.com/narr07/sibos/releases/latest/download/latest.json"
+				"https://github.com/narr07/silajur/releases/latest/download/latest.json"
 			],
 			"windows": {
 				"installMode": "passive"

@@ -1,4 +1,4 @@
-const REPO = "narr07/sibos";
+const REPO = "narr07/silajur";
 export const HALAMAN_RILIS = `https://github.com/${REPO}/releases/latest`;
 const AWALAN_V = /^v/;
 

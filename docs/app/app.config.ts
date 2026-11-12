@@ -21,10 +21,10 @@ export default defineAppConfig({
 		}
 	},
 	socials: {
-		github: "https://github.com/narr07/sibos"
+		github: "https://github.com/narr07/silajur"
 	},
 	github: {
-		url: "https://github.com/narr07/sibos",
+		url: "https://github.com/narr07/silajur",
 		branch: "main",
 		rootDir: "docs"
 	},

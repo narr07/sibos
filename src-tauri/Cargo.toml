@@ -1,6 +1,6 @@
 [package]
-name = "sibos"
-version = "0.4.2"
+name = "silajur"
+version = "0.4.3"
 description = "Aplikasi pendamping ARKAS untuk SPJ BOSP"
 license = "MIT"
 edition = "2021"

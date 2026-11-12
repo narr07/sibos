@@ -87,7 +87,7 @@ impl ArkasDb {
 	/// Nama salinan unik: saat koneksi dimuat ulang, `Drop` koneksi lama tidak boleh
 	/// menghapus salinan milik koneksi baru.
 	fn copy_to_temp(path: &Path) -> AppResult<PathBuf> {
-		let dir = std::env::temp_dir().join("sibos");
+		let dir = std::env::temp_dir().join("silajur");
 		std::fs::create_dir_all(&dir)?;
 		remove_stale_snapshots(&dir);
 		let target = dir.join(crate::util::unique_name("arkas-snapshot", "db"));

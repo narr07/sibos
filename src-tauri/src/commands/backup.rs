@@ -18,7 +18,7 @@ use crate::util;
 
 const AUTO_KEY: &str = "backup.auto";
 /// Awalan nama file backup otomatis. Yang pertama dipakai untuk file baru; sisanya nama lama (SIBOS).
-const AUTO_PREFIXES: [&str; 2] = ["Lajur_AutoBackup_", "SIBOS_AutoBackup_"];
+const AUTO_PREFIXES: [&str; 3] = ["SiLajur_AutoBackup_", "Lajur_AutoBackup_", "SIBOS_AutoBackup_"];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -62,7 +62,7 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) -> std::io::Result<()> {
 
 /// Buat file backup `.sibos` (zip): manifest.json + sibos.db + folder nota.
 pub(crate) fn create_backup(state: &AppState, target: &Path) -> AppResult<BackupInfo> {
-	let snapshot = std::env::temp_dir().join(util::unique_name("sibos-snapshot", "db"));
+	let snapshot = std::env::temp_dir().join(util::unique_name("silajur-snapshot", "db"));
 	let schema_version = {
 		let db = state.app_db();
 		db.vacuum_into(&snapshot)?;
@@ -377,7 +377,7 @@ mod tests {
 
 	fn restore_from(state: &AppState, backup: &Path) -> AppResult<()> {
 		let mut zip = zip::ZipArchive::new(File::open(backup)?).map_err(zip_err)?;
-		let temp_db = std::env::temp_dir().join(util::unique_name("sibos-restore-uji", "db"));
+		let temp_db = std::env::temp_dir().join(util::unique_name("silajur-restore-uji", "db"));
 		let staging = state.data_dir.join("nota.pulih-tmp");
 		let result = prepare_restore(&mut zip, &temp_db, &staging).and_then(|()| swap_restore(state, &temp_db, &staging));
 		let _ = std::fs::remove_file(&temp_db);

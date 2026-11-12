@@ -35,7 +35,7 @@ pub fn run() {
 		.plugin(tauri_plugin_process::init())
 		.setup(|app| {
 			let data_dir = app.path().app_data_dir()?;
-			let app_db = AppDb::open(&data_dir.join("sibos.db"))?;
+			let db_file = if !data_dir.join("silajur.db").exists() && data_dir.join("sibos.db").exists() { data_dir.join("sibos.db") } else { data_dir.join("silajur.db") }; let app_db = AppDb::open(&db_file)?;
 			app.manage(AppState::new(app_db, data_dir));
 			// Backup otomatis (bila diaktifkan) di latar belakang agar jendela tidak tertahan.
 			let handle = app.handle().clone();

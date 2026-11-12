@@ -30,7 +30,7 @@
 							<UButton icon="i-lucide-book-open" color="neutral" variant="outline" @click="buka('https://lajur.web.id')">
 								Panduan · lajur.web.id
 							</UButton>
-							<UButton icon="i-lucide-github" color="neutral" variant="ghost" @click="buka('https://github.com/narr07/sibos')">
+							<UButton icon="i-lucide-github" color="neutral" variant="ghost" @click="buka('https://github.com/narr07/silajur')">
 								Kode sumber
 							</UButton>
 						</div>
